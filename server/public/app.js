@@ -513,7 +513,7 @@ $('#product-image').addEventListener('change', event => {
   reader.readAsDataURL(file);
 });
 
-$('#seller-form').addEventListener('submit', event => {
+$('#seller-form').addEventListener('submit', async event => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
   const imageURL = selectedImageData || form.get('imageURL');
@@ -521,15 +521,39 @@ $('#seller-form').addEventListener('submit', event => {
     showToast('Choose a product image or enter an image URL.');
     return;
   }
-  state.products = [{
-    _id: 'local-' + Date.now(),
+  if (!state.token || state.user?.role !== 'seller') {
+    showToast('Sign in with a seller account before adding inventory.');
+    return;
+  }
+  const productPayload = {
     name: form.get('name'),
     category: form.get('category'),
     description: form.get('description'),
     price: Number(form.get('price')),
     stock: Number(form.get('stock')),
     imageURL
-  }, ...state.products];
+  };
+  let response;
+  try {
+    response = await fetch('/api/products', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${state.token}`
+      },
+      body: JSON.stringify(productPayload)
+    });
+  } catch {
+    showToast('The server is unavailable. Product was not saved.');
+    return;
+  }
+  const product = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    showToast(product.message || 'Product could not be saved.');
+    return;
+  }
+  state.products = [product, ...state.products];
+  const productName = product.name;
   event.currentTarget.reset();
   selectedImageData = '';
   $('#image-name').textContent = 'Choose an image from this PC';
@@ -537,7 +561,7 @@ $('#seller-form').addEventListener('submit', event => {
   updateCategories();
   setView('store');
   renderAll();
-  showToast(`${form.get('name')} added to inventory.`);
+  showToast(`${productName} saved to inventory.`);
 });
 
 $('#checkout-form').addEventListener('submit', placeOrder);
