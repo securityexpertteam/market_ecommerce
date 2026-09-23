@@ -40,4 +40,4 @@ services:
     staticPublishPath: dist
     envVars:
       - key: EXPO_PUBLIC_API_URL
-        value: https://hype-marketplace-api.onrender.com/api
+        value: https://market-ecommerce.onrender.com/api
