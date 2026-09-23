@@ -10,7 +10,7 @@ Expo React Native storefront plus Express/MongoDB API. It includes buyer and sel
 4. Start the API: `npm run dev:server`.
 5. In a second terminal start Expo: `npm run dev:mobile`. For an Android emulator, the demo API base URL is already `http://10.0.2.2:4000/api`. Change `API` in `mobile/App.tsx` to your computer's LAN IP for Expo Go on a physical device.
 
-The API creates demo inventory on first startup. Seller demo credentials are `seller@hype.local` / `Seller123!`; change or remove them before any public deployment.
+The API creates demo inventory on first startup. Seller demo credentials are `seller@hype.local` / `Seller123!`; change or remove them before any public deployment. Seller registration requires a valid GSTIN.
 
 ## API surface
 
@@ -23,6 +23,21 @@ Send the access token using `Authorization: Bearer <token>`. The mobile UI curre
 
 ## Deploy safely
 
-Deploy `server` to Render with its Dockerfile and configure the same environment variables in Render. Keep images in Cloudinary/S3 rather than local storage—Render free instances are stateless. Render terminates TLS; set `CLIENT_ORIGIN` to the trusted deployed client origin. `helmet`, request-size limits, Joi input validation, bcrypt, JWT role authorization, and rate limiting are configured in the API.
+### Render deployment
+
+Use the repository's `render.yaml` as a Blueprint. It creates:
+
+- `hype-marketplace-api`: Node/Express API
+- `hype-marketplace-web`: Expo web static site
+
+Set these values in Render before the first deploy:
+
+- API `MONGODB_URI`: MongoDB Atlas connection string
+- API `JWT_SECRET`: long random production secret
+- API `CLIENT_ORIGIN`: deployed web URL, for example `https://hype-marketplace-web.onrender.com`
+- API seed seller variables, if demo inventory is needed
+- Web `EXPO_PUBLIC_API_URL`: `https://hype-marketplace-api.onrender.com/api`
+
+The web build embeds `EXPO_PUBLIC_API_URL`, so redeploy the static site after changing it. Seller catalog create, edit, delete, promotion settings, and prize images use the authenticated API; no Render filesystem storage is required. Keep large production images in object storage or image URLs because Render free instances are stateless.
 
 MongoDB Atlas M0 and Render free tiers are suitable for a demo only, not the stated 10k concurrent-user target. That requires load testing, a horizontally scalable compute tier, Redis-backed distributed rate limiting/cache, and a paid Atlas cluster with appropriate connection-pool and index design.
