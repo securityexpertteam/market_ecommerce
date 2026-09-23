@@ -945,13 +945,13 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
               <Text style={styles.dropdownText}>{community}</Text>
               <Text style={styles.dropdownArrow}>{communityOpen ? '▲' : '▼'}</Text>
             </Pressable>
-            {communityOpen && <ScrollView style={styles.dropdownMenu} nestedScrollEnabled>
+            {communityOpen && <View style={styles.communityDropdownMenu}>
               {communities.map((option) => (
                 <Pressable key={option} style={styles.dropdownOption} onPress={() => { setCommunity(option); setCommunityOpen(false); }}>
                   <Text style={styles.dropdownOptionText}>{option}</Text>
                 </Pressable>
               ))}
-            </ScrollView>}
+            </View>}
             <Text style={styles.fieldLabel}>Nearby nodal point</Text>
             <Pressable style={styles.dropdown} onPress={() => { setNodalPointOpen((current) => !current); setCommunityOpen(false); }}>
               <Text style={styles.dropdownText}>{nodalPoint}</Text>
@@ -2204,6 +2204,15 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     maxHeight: 190,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#c9d8cd',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    elevation: 3,
+    zIndex: 5,
+  },
+  communityDropdownMenu: {
     marginTop: 4,
     borderWidth: 1,
     borderColor: '#c9d8cd',
