@@ -403,7 +403,7 @@ const Shop = () => {
               items: cart.map((item) => ({ productId: item._id, quantity: item.quantity, prizeEntry: item.promotion?.enabled && promotionOptIns[item._id] !== false })),
               delivery: {
                 address: `${delivery.address}, ${delivery.city}, ${delivery.state}, ${delivery.pincode}`,
-                contact: delivery.contact,
+                contact: /^\d{10}$/.test(delivery.contact.trim()) ? `+91${delivery.contact.trim()}` : delivery.contact.trim(),
                 community: delivery.community,
                 nodalPoint: delivery.nodalPoint,
               },
@@ -899,6 +899,9 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
   const [address, setAddress] = useState({ line: '', city: '', state: '', pincode: '', contact: '' });
   const [community, setCommunity] = useState(communities[0]);
   const [nodalPoint, setNodalPoint] = useState(communityNodalPoints[communities[0]][0]);
+  const [communityOpen, setCommunityOpen] = useState(false);
+  const [nodalPointOpen, setNodalPointOpen] = useState(false);
+  const [validationMessage, setValidationMessage] = useState('');
   const nodalPoints = communityNodalPoints[community] || [];
   const promotionFee = includePromotion && promotion?.enabled ? Number(promotion.entryFee) || 399 : 0;
   const platformDiscount = includePromotion && platformDiscountRate ? Math.round(total * platformDiscountRate / 100) : 0;
@@ -907,6 +910,21 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
   useEffect(() => {
     setNodalPoint(nodalPoints[0] || '');
   }, [community]);
+
+  const continueToPayment = () => {
+    const trimmedAddress = address.line.trim();
+    const trimmedCity = address.city.trim();
+    const trimmedState = address.state.trim();
+    const trimmedPincode = address.pincode.trim();
+    const trimmedContact = address.contact.trim();
+    if (trimmedAddress.length < 10) return setValidationMessage('Enter a complete street address.');
+    if (!/^[A-Za-z][A-Za-z .'-]{1,}$/.test(trimmedCity)) return setValidationMessage('Enter a valid city.');
+    if (!/^[A-Za-z][A-Za-z .'-]{1,}$/.test(trimmedState)) return setValidationMessage('Enter a valid state.');
+    if (!/^\d{6}$/.test(trimmedPincode)) return setValidationMessage('Enter a valid 6-digit pincode.');
+    if (!/^(?:\+91[6-9]\d{9}|[6-9]\d{9})$/.test(trimmedContact)) return setValidationMessage('Enter a valid 10-digit Indian mobile number.');
+    setValidationMessage('');
+    setStep(2);
+  };
 
   return (
     <SafeAreaView style={styles.page}>
@@ -923,21 +941,29 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
         {step === 1 ? (
           <>
             <Text style={styles.fieldLabel}>Community</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionRow}>
+            <Pressable style={styles.dropdown} onPress={() => { setCommunityOpen((current) => !current); setNodalPointOpen(false); }}>
+              <Text style={styles.dropdownText}>{community}</Text>
+              <Text style={styles.dropdownArrow}>{communityOpen ? '▲' : '▼'}</Text>
+            </Pressable>
+            {communityOpen && <ScrollView style={styles.dropdownMenu} nestedScrollEnabled>
               {communities.map((option) => (
-                <Pressable key={option} style={[styles.optionChip, community === option && styles.optionChipActive]} onPress={() => setCommunity(option)}>
-                  <Text style={[styles.optionChipText, community === option && styles.optionChipTextActive]}>{option}</Text>
+                <Pressable key={option} style={styles.dropdownOption} onPress={() => { setCommunity(option); setCommunityOpen(false); }}>
+                  <Text style={styles.dropdownOptionText}>{option}</Text>
                 </Pressable>
               ))}
-            </ScrollView>
+            </ScrollView>}
             <Text style={styles.fieldLabel}>Nearby nodal point</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionRow}>
+            <Pressable style={styles.dropdown} onPress={() => { setNodalPointOpen((current) => !current); setCommunityOpen(false); }}>
+              <Text style={styles.dropdownText}>{nodalPoint}</Text>
+              <Text style={styles.dropdownArrow}>{nodalPointOpen ? '▲' : '▼'}</Text>
+            </Pressable>
+            {nodalPointOpen && <View style={styles.dropdownMenu}>
               {nodalPoints.map((option) => (
-                <Pressable key={option} style={[styles.optionChip, nodalPoint === option && styles.optionChipActive]} onPress={() => setNodalPoint(option)}>
-                  <Text style={[styles.optionChipText, nodalPoint === option && styles.optionChipTextActive]}>{option}</Text>
+                <Pressable key={option} style={styles.dropdownOption} onPress={() => { setNodalPoint(option); setNodalPointOpen(false); }}>
+                  <Text style={styles.dropdownOptionText}>{option}</Text>
                 </Pressable>
               ))}
-            </ScrollView>
+            </View>}
             <Text style={styles.fieldLabel}>Street address</Text>
             <TextInput style={styles.input} placeholder="House number, street, area" value={address.line} onChangeText={(line) => setAddress((current) => ({ ...current, line }))} />
             <View style={styles.inlineFields}>
@@ -961,10 +987,11 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
               </View>
             </View>
             <View style={styles.checkoutActions}>
-              <Button mode="contained" onPress={() => setStep(2)} buttonColor="#173f3a">
+              <Button mode="contained" onPress={continueToPayment} buttonColor="#173f3a">
                 Continue to payment
               </Button>
             </View>
+            {validationMessage ? <Text style={styles.validationMessage}>{validationMessage}</Text> : null}
           </>
         ) : (
           <>
@@ -2151,6 +2178,56 @@ const styles = StyleSheet.create({
   },
   optionChipTextActive: {
     color: '#fff',
+  },
+  dropdown: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: '#c9d8cd',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+  },
+  dropdownText: {
+    flex: 1,
+    color: '#173f3a',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  dropdownArrow: {
+    marginLeft: 10,
+    color: '#16745a',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  dropdownMenu: {
+    maxHeight: 190,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#c9d8cd',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    elevation: 3,
+    zIndex: 5,
+  },
+  dropdownOption: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#edf1ed',
+  },
+  dropdownOptionText: {
+    color: '#245545',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  validationMessage: {
+    marginTop: 8,
+    color: '#b42318',
+    fontSize: 13,
+    fontWeight: '700',
   },
   fieldHalf: {
     flex: 1,
