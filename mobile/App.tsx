@@ -227,22 +227,7 @@ const Shop = () => {
   const [products, setProducts] = useState(featured);
   const [selected, setSelected] = useState<Product>(featured[0]);
   const [cart, setCart] = useState<Cart[]>([]);
-  const [orders, setOrders] = useState<StoreOrder[]>([
-    {
-      id: 'ord_1024',
-      status: 'confirmed',
-      total: 3499,
-      createdAt: '2026-09-10T10:30:00.000Z',
-      items: [{ productId: '1', name: 'Cloud Runner', price: 3499, quantity: 1, imageURL: featured[0].imageURL }],
-    },
-    {
-      id: 'ord_1025',
-      status: 'pending',
-      total: 1899,
-      createdAt: '2026-09-12T15:05:00.000Z',
-      items: [{ productId: '2', name: 'Everyday Carry', price: 1899, quantity: 1, imageURL: featured[1].imageURL }],
-    },
-  ]);
+  const [orders, setOrders] = useState<StoreOrder[]>([]);
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
   const [userName, setUserName] = useState('Guest');
   const [apiToken, setApiToken] = useState('');
