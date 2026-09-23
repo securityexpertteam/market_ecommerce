@@ -124,6 +124,45 @@ const communityNodalPoints: Record<string, string[]> = {
   'LB Nagar': ['LB Nagar Metro Station', 'Kothapet Fruit Market', 'Vanasthalipuram Junction'],
 };
 const communities = Object.keys(communityNodalPoints);
+const indiaStateCities: Record<string, string[]> = {
+  Andhra Pradesh: ['Visakhapatnam', 'Vijayawada', 'Guntur', 'Tirupati', 'Nellore', 'Kurnool'],
+  Arunachal Pradesh: ['Itanagar', 'Naharlagun', 'Tawang', 'Pasighat'],
+  Assam: ['Guwahati', 'Dibrugarh', 'Silchar', 'Jorhat', 'Tezpur'],
+  Bihar: ['Patna', 'Gaya', 'Muzaffarpur', 'Bhagalpur', 'Darbhanga'],
+  Chhattisgarh: ['Raipur', 'Bhilai', 'Bilaspur', 'Korba', 'Durg'],
+  Goa: ['Panaji', 'Vasco da Gama', 'Margao', 'Mapusa'],
+  Gujarat: ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot', 'Gandhinagar', 'Bhavnagar'],
+  Haryana: ['Gurugram', 'Faridabad', 'Panipat', 'Ambala', 'Hisar', 'Karnal'],
+  'Himachal Pradesh': ['Shimla', 'Manali', 'Dharamshala', 'Solan', 'Mandi'],
+  Jharkhand: ['Ranchi', 'Jamshedpur', 'Dhanbad', 'Bokaro', 'Deoghar'],
+  Karnataka: ['Bengaluru', 'Mysuru', 'Mangaluru', 'Hubballi', 'Belagavi', 'Shivamogga'],
+  Kerala: ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur', 'Kollam', 'Kannur'],
+  Madhya Pradesh: ['Bhopal', 'Indore', 'Jabalpur', 'Gwalior', 'Ujjain', 'Sagar'],
+  Maharashtra: ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Thane', 'Aurangabad', 'Kolhapur'],
+  Manipur: ['Imphal', 'Thoubal', 'Churachandpur'],
+  Meghalaya: ['Shillong', 'Tura', 'Jowai'],
+  Mizoram: ['Aizawl', 'Lunglei', 'Champhai'],
+  Nagaland: ['Kohima', 'Dimapur', 'Mokokchung'],
+  Odisha: ['Bhubaneswar', 'Cuttack', 'Rourkela', 'Berhampur', 'Puri'],
+  Punjab: ['Chandigarh', 'Ludhiana', 'Amritsar', 'Jalandhar', 'Patiala', 'Bathinda'],
+  Rajasthan: ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota', 'Ajmer', 'Bikaner'],
+  Sikkim: ['Gangtok', 'Namchi', 'Gyalshing'],
+  'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem', 'Tirunelveli'],
+  Telangana: ['Hyderabad', 'Warangal', 'Nizamabad', 'Karimnagar', 'Khammam'],
+  Tripura: ['Agartala', 'Udaipur', 'Dharmanagar'],
+  Uttar Pradesh: ['Lucknow', 'Noida', 'Kanpur', 'Varanasi', 'Agra', 'Prayagraj', 'Ghaziabad'],
+  Uttarakhand: ['Dehradun', 'Haridwar', 'Rishikesh', 'Haldwani', 'Nainital'],
+  'West Bengal': ['Kolkata', 'Howrah', 'Siliguri', 'Durgapur', 'Asansol'],
+  Delhi: ['New Delhi', 'Delhi'],
+  'Jammu and Kashmir': ['Srinagar', 'Jammu', 'Anantnag', 'Baramulla'],
+  Ladakh: ['Leh', 'Kargil'],
+  Puducherry: ['Puducherry', 'Karaikal'],
+  Chandigarh: ['Chandigarh'],
+  'Dadra and Nagar Haveli and Daman and Diu': ['Daman', 'Silvassa', 'Diu'],
+  Lakshadweep: ['Kavaratti', 'Agatti'],
+  'Andaman and Nicobar Islands': ['Port Blair', 'Diglipur'],
+};
+const indianStates = Object.keys(indiaStateCities);
 
 const createDemoOrder = (items: Cart[], totalOverride?: number, promotion?: Product['promotion']): StoreOrder => ({
   id: `ord_${Date.now()}`,
@@ -896,13 +935,16 @@ const Auth = ({ done }: { done: (value: 'buyer' | 'seller', name: string, token:
 const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, back, success }: any) => {
   const [step, setStep] = useState(1);
   const [includePromotion, setIncludePromotion] = useState(Boolean(promotionSelected));
-  const [address, setAddress] = useState({ line: '', city: '', state: '', pincode: '', contact: '' });
+  const [address, setAddress] = useState({ line: '', city: 'Hyderabad', state: 'Telangana', pincode: '', contact: '' });
   const [community, setCommunity] = useState(communities[0]);
   const [nodalPoint, setNodalPoint] = useState(communityNodalPoints[communities[0]][0]);
   const [communityOpen, setCommunityOpen] = useState(false);
   const [nodalPointOpen, setNodalPointOpen] = useState(false);
+  const [stateOpen, setStateOpen] = useState(false);
+  const [cityOpen, setCityOpen] = useState(false);
   const [validationMessage, setValidationMessage] = useState('');
   const nodalPoints = communityNodalPoints[community] || [];
+  const cities = indiaStateCities[address.state] || [];
   const promotionFee = includePromotion && promotion?.enabled ? Number(promotion.entryFee) || 399 : 0;
   const platformDiscount = includePromotion && platformDiscountRate ? Math.round(total * platformDiscountRate / 100) : 0;
   const finalTotal = total + promotionFee - platformDiscount;
@@ -918,8 +960,8 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
     const trimmedPincode = address.pincode.trim();
     const trimmedContact = address.contact.trim();
     if (trimmedAddress.length < 10) return setValidationMessage('Enter a complete street address.');
-    if (!/^[A-Za-z][A-Za-z .'-]{1,}$/.test(trimmedCity)) return setValidationMessage('Enter a valid city.');
-    if (!/^[A-Za-z][A-Za-z .'-]{1,}$/.test(trimmedState)) return setValidationMessage('Enter a valid state.');
+    if (!indiaStateCities[trimmedState]) return setValidationMessage('Select a valid state.');
+    if (!cities.includes(trimmedCity)) return setValidationMessage('Select a valid city.');
     if (!/^\d{6}$/.test(trimmedPincode)) return setValidationMessage('Enter a valid 6-digit pincode.');
     if (!/^(?:\+91[6-9]\d{9}|[6-9]\d{9})$/.test(trimmedContact)) return setValidationMessage('Enter a valid 10-digit Indian mobile number.');
     setValidationMessage('');
@@ -969,11 +1011,31 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
             <View style={styles.inlineFields}>
               <View style={styles.fieldHalf}>
                 <Text style={styles.fieldLabel}>City</Text>
-                <TextInput style={styles.input} placeholder="City" value={address.city} onChangeText={(city) => setAddress((current) => ({ ...current, city }))} />
+                <Pressable disabled={!address.state} style={[styles.dropdown, !address.state && styles.dropdownDisabled]} onPress={() => { setCityOpen((current) => !current); setStateOpen(false); }}>
+                  <Text style={[styles.dropdownText, !address.state && styles.dropdownDisabledText]}>{address.city || 'Select city'}</Text>
+                  <Text style={styles.dropdownArrow}>{cityOpen ? '▲' : '▼'}</Text>
+                </Pressable>
+                {cityOpen && <View style={styles.dropdownMenu}>
+                  {cities.map((city) => (
+                    <Pressable key={city} style={styles.dropdownOption} onPress={() => { setAddress((current) => ({ ...current, city })); setCityOpen(false); }}>
+                      <Text style={styles.dropdownOptionText}>{city}</Text>
+                    </Pressable>
+                  ))}
+                </View>}
               </View>
               <View style={styles.fieldHalf}>
                 <Text style={styles.fieldLabel}>State</Text>
-                <TextInput style={styles.input} placeholder="State" value={address.state} onChangeText={(state) => setAddress((current) => ({ ...current, state }))} />
+                <Pressable style={styles.dropdown} onPress={() => { setStateOpen((current) => !current); setCityOpen(false); }}>
+                  <Text style={styles.dropdownText}>{address.state || 'Select state'}</Text>
+                  <Text style={styles.dropdownArrow}>{stateOpen ? '▲' : '▼'}</Text>
+                </Pressable>
+                {stateOpen && <View style={styles.dropdownMenu}>
+                  {indianStates.map((state) => (
+                    <Pressable key={state} style={styles.dropdownOption} onPress={() => { setAddress((current) => ({ ...current, state, city: '' })); setStateOpen(false); }}>
+                      <Text style={styles.dropdownOptionText}>{state}</Text>
+                    </Pressable>
+                  ))}
+                </View>}
               </View>
             </View>
             <View style={styles.inlineFields}>
