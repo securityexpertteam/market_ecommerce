@@ -167,7 +167,7 @@ const CartToast = ({ visible, itemName }: { visible: boolean; itemName: string }
   );
 };
 
-const AnimatedPrizeImage = ({ uri, detail = false }: { uri: string; detail?: boolean }) => {
+const AnimatedPrizeImage = ({ uri, detail = false }: { uri?: string; detail?: boolean }) => {
   const motion = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -181,7 +181,7 @@ const AnimatedPrizeImage = ({ uri, detail = false }: { uri: string; detail?: boo
 
   return (
     <Animated.View style={[detail ? styles.detailPrizeFrame : styles.catalogPrizeFrame, { transform: [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [0, -3] }) }] }]}>
-      <Image source={{ uri }} style={detail ? styles.detailPrizeImage : styles.catalogPrizeThumb} />
+      {uri ? <Image source={{ uri }} style={detail ? styles.detailPrizeImage : styles.catalogPrizeThumb} /> : <Text style={styles.prizeGiftFallback}>GIFT</Text>}
     </Animated.View>
   );
 };
@@ -208,7 +208,7 @@ const ProductCard = ({ product, index, wide, onOpen, onAdd }: { product: Product
             <Text style={styles.price}>{formatPrice(product.price)}</Text>
             <View style={styles.productActionStack}>
               {product.promotion?.enabled ? <Text style={styles.promotionPill}>+ {formatPrice(product.promotion.entryFee)} entry</Text> : null}
-              {product.promotion?.enabled && product.promotion.prizeImageURL ? <AnimatedPrizeImage uri={product.promotion.prizeImageURL} /> : null}
+              {product.promotion?.enabled ? <AnimatedPrizeImage uri={product.promotion.prizeImageURL} /> : null}
               <AddToCartButton onPress={onAdd} />
             </View>
           </View>
@@ -416,7 +416,7 @@ const Shop = () => {
                     <Text style={styles.inlineAction}>Remove</Text>
                   </Pressable>
                 </View>
-                {item.promotion?.enabled && <View style={styles.cartPromotionStack}>{item.promotion.prizeImageURL ? <AnimatedPrizeImage uri={item.promotion.prizeImageURL} /> : null}<Pressable style={styles.cartPromotionToggle} onPress={() => setPromotionOptIns((current) => ({ ...current, [item._id]: !current[item._id] }))}><View style={[styles.cartCheck, promotionOptIns[item._id] !== false && styles.cartCheckActive]}><Text style={styles.cartCheckText}>{promotionOptIns[item._id] !== false ? '✓' : ''}</Text></View><Text style={styles.cartPromotionText}>{promotionOptIns[item._id] !== false ? 'Prize added' : 'Add entry'}</Text></Pressable></View>}
+                {item.promotion?.enabled && <View style={styles.cartPromotionStack}><AnimatedPrizeImage uri={item.promotion.prizeImageURL} /><Pressable style={styles.cartPromotionToggle} onPress={() => setPromotionOptIns((current) => ({ ...current, [item._id]: !current[item._id] }))}><View style={[styles.cartCheck, promotionOptIns[item._id] !== false && styles.cartCheckActive]}><Text style={styles.cartCheckText}>{promotionOptIns[item._id] !== false ? '✓' : ''}</Text></View><Text style={styles.cartPromotionText}>{promotionOptIns[item._id] !== false ? 'Prize added' : 'Add entry'}</Text></Pressable></View>}
               </View>
             )}
           />
@@ -450,7 +450,7 @@ const Shop = () => {
             <Text style={styles.pageTitle}>{selected.name}</Text>
             <Text style={styles.priceLarge}>{formatPrice(selected.price)}</Text>
             <Text style={styles.description}>{selected.description}</Text>
-            {selected.promotion?.enabled && <Pressable style={styles.detailPromotionCard} onPress={() => setPromotionOptIns((current) => ({ ...current, [selected._id]: !current[selected._id] }))}>{selected.promotion.prizeImageURL ? <AnimatedPrizeImage uri={selected.promotion.prizeImageURL} detail /> : null}<View style={styles.detailPromotionCopy}><Text style={styles.promotionEyebrow}>OPTIONAL BONUS ENTRY</Text><Text style={styles.detailPromotionTitle}>Add {formatPrice(selected.promotion.entryFee)} for a chance to win an {selected.promotion.prize}</Text><Text style={styles.muted}>Choose this at checkout. Entry is never added automatically.</Text></View><View style={styles.detailPromotionToggle}><View style={[styles.promotionCheck, promotionOptIns[selected._id] && styles.promotionCheckActive]}><Text style={styles.promotionCheckText}>{promotionOptIns[selected._id] ? '✓' : ''}</Text></View><Text style={styles.detailPromotionToggleText}>{promotionOptIns[selected._id] ? 'Added' : 'Add entry'}</Text></View></Pressable>}
+            {selected.promotion?.enabled && <Pressable style={styles.detailPromotionCard} onPress={() => setPromotionOptIns((current) => ({ ...current, [selected._id]: !current[selected._id] }))}><AnimatedPrizeImage uri={selected.promotion.prizeImageURL} detail /><View style={styles.detailPromotionCopy}><Text style={styles.promotionEyebrow}>OPTIONAL BONUS ENTRY</Text><Text style={styles.detailPromotionTitle}>Add {formatPrice(selected.promotion.entryFee)} for a chance to win an {selected.promotion.prize}</Text><Text style={styles.muted}>Choose this at checkout. Entry is never added automatically.</Text></View><View style={styles.detailPromotionToggle}><View style={[styles.promotionCheck, promotionOptIns[selected._id] && styles.promotionCheckActive]}><Text style={styles.promotionCheckText}>{promotionOptIns[selected._id] ? '✓' : ''}</Text></View><Text style={styles.detailPromotionToggleText}>{promotionOptIns[selected._id] ? 'Added' : 'Add entry'}</Text></View></Pressable>}
             <View style={styles.metaRow}>
               <Text style={styles.metaBadge}>Free delivery</Text>
               <Text style={styles.muted}>{selected.stock} left in stock</Text>
@@ -493,17 +493,17 @@ const Shop = () => {
               </Pressable>
             ))}
             <View style={styles.menuDivider} />
-            <Pressable style={styles.menuItem} onPress={() => { setPage('orders'); setMenuOpen(false); }}>
+            {role === 'buyer' && <Pressable style={styles.menuItem} onPress={() => { setPage('orders'); setMenuOpen(false); }}>
               <Text style={styles.menuItemText}>Orders</Text><Text style={styles.menuArrow}>+</Text>
-            </Pressable>
+            </Pressable>}
             {role === 'seller' && (
               <Pressable style={styles.menuItem} onPress={() => { setPage('seller'); setMenuOpen(false); }}>
                 <Text style={styles.menuItemText}>Seller studio</Text><Text style={styles.menuArrow}>+</Text>
               </Pressable>
             )}
-            <Pressable style={styles.menuItem} onPress={() => { setPage('cart'); setMenuOpen(false); }}>
+            {role === 'buyer' && <Pressable style={styles.menuItem} onPress={() => { setPage('cart'); setMenuOpen(false); }}>
               <Text style={styles.menuItemText}>Bag ({cart.length})</Text><Text style={styles.menuArrow}>+</Text>
-            </Pressable>
+            </Pressable>}
           </View>
         </View>
       )}
@@ -603,10 +603,10 @@ const Header = ({ cart, go, userName, role, wide, onMenu, seller }: any) => {
             <Text style={styles.menuButtonLines}>|||</Text>
             <Text style={styles.nav}>Menu</Text>
           </Pressable>
-          <Pressable onPress={() => go('cart')} style={styles.bagBadgeWrap}>
+          {role === 'buyer' && <Pressable onPress={() => go('cart')} style={styles.bagBadgeWrap}>
             <Text style={styles.nav}>Bag</Text>
             <View style={styles.bagBadge}><Text style={styles.bagBadgeText}>{cart}</Text></View>
-          </Pressable>
+          </Pressable>}
           <Pressable
             accessibilityLabel="Open user menu"
             onPress={() => setProfileOpen((current) => !current)}
@@ -618,10 +618,10 @@ const Header = ({ cart, go, userName, role, wide, onMenu, seller }: any) => {
             <View style={styles.profileMenu}>
               <Text style={styles.profileEyebrow}>YOUR ACCOUNT</Text>
               <Text style={styles.profileTitle}>{userName}</Text>
-              <Pressable style={styles.profileMenuItem} onPress={() => { go('orders'); setProfileOpen(false); }}>
+              {role === 'buyer' && <Pressable style={styles.profileMenuItem} onPress={() => { go('orders'); setProfileOpen(false); }}>
                 <Text style={styles.profileMenuText}>Your orders</Text>
                 <Text style={styles.profileMenuArrow}>+</Text>
-              </Pressable>
+              </Pressable>}
               {role === 'seller' && (
                 <Pressable style={styles.profileMenuItem} onPress={() => { go('seller'); setProfileOpen(false); }}>
                   <Text style={styles.profileMenuText}>{seller ? 'Seller studio' : 'Seller studio'}</Text>
@@ -697,7 +697,7 @@ const OrderCard = ({ order, index, onCancel }: { order: StoreOrder; index: numbe
 
       {order.promotion && (
         <View style={styles.orderPromotionRow}>
-          {order.promotion.prizeImageURL ? <Image source={{ uri: order.promotion.prizeImageURL }} style={styles.orderPrizeThumb} /> : null}
+          <AnimatedPrizeImage uri={order.promotion.prizeImageURL} />
           <View style={styles.orderPromotionCopy}>
             <Text style={styles.orderPromotionLabel}>BONUS ENTRY</Text>
             <Text style={styles.itemTitle}>Chance to win an {order.promotion.prize}</Text>
@@ -921,7 +921,7 @@ const Checkout = ({ total, promotion, promotionSelected, back, success }: any) =
                 <View style={[styles.promotionCheck, includePromotion && styles.promotionCheckActive]}>
                   <Text style={styles.promotionCheckText}>{includePromotion ? '✓' : ''}</Text>
                 </View>
-                {promotion.prizeImageURL ? <AnimatedPrizeImage uri={promotion.prizeImageURL} /> : null}
+                <AnimatedPrizeImage uri={promotion.prizeImageURL} />
                 <View style={styles.promotionCopy}>
                   <Text style={styles.promotionEyebrow}>DIWALI BONUS ENTRY</Text>
                   <Text style={styles.promotionTitle}>Add {formatPrice(promotion.entryFee)} for a chance to win an {promotion.prize}</Text>
@@ -1736,6 +1736,18 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 14,
     backgroundColor: '#f7efe3',
+  },
+  prizeGiftFallback: {
+    width: 64,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+    backgroundColor: '#f7efe3',
+    color: '#b9633d',
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
   catalogPrizeFrame: {
     padding: 2,
