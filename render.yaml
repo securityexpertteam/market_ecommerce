@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: hype-marketplace-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: SEED_SELLER_NAME
+        sync: false
+      - key: SEED_SELLER_EMAIL
+        sync: false
+      - key: SEED_SELLER_PASSWORD
+        sync: false
+  - type: static
+    name: hype-marketplace-web
+    rootDir: mobile
+    buildCommand: npm install && npx expo export --platform web
+    staticPublishPath: dist
+    envVars:
+      - key: EXPO_PUBLIC_API_URL
+        value: https://hype-marketplace-api.onrender.com/api

@@ -1,1 +1,25 @@
-{"expo":{"name":"Hype Marketplace","slug":"hype-marketplace","version":"1.0.0","orientation":"portrait","userInterfaceStyle":"light","splash":{"resizeMode":"contain","backgroundColor":"#fff8f4"},"android":{"package":"com.hype.marketplace"},"ios":{"bundleIdentifier":"com.hype.marketplace"}}}
+{
+  "expo": {
+    "name": "Marketplace",
+    "slug": "hype-marketplace",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#f6fbf8"
+    },
+    "android": {
+      "package": "com.hype.marketplace",
+      "versionCode": 1
+    },
+    "ios": {
+      "bundleIdentifier": "com.hype.marketplace"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3efecf84-0d22-4da6-87b4-b9598c4bf712"
+      }
+    }
+  }
+}

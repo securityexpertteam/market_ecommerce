@@ -449,6 +449,9 @@ function setView(view) {
     const node = $(`#${name}-view`);
     if (node) node.hidden = name !== view;
   });
+  document.querySelectorAll('.nav [data-view]').forEach(button => {
+    button.classList.toggle('is-active', button.dataset.view === view);
+  });
   $('#cart-drawer').hidden = view !== 'cart';
   if (view === 'store') $('#catalog').scrollIntoView({ behavior: 'smooth' });
   showToast(`${view.charAt(0).toUpperCase() + view.slice(1)} opened.`);
