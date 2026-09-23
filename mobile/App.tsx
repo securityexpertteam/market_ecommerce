@@ -18,7 +18,7 @@ type Product = {
 
 type Cart = Product & { quantity: number };
 
-const API = (process.env as { EXPO_PUBLIC_API_URL?: string }).EXPO_PUBLIC_API_URL || '';
+const API = process.env.EXPO_PUBLIC_API_URL || 'https://market-ecommerce.onrender.com/api';
 
 const featured: Product[] = [
   {
