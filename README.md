@@ -40,4 +40,4 @@ Set these values in Render before the first deploy:
 
 The web build embeds `EXPO_PUBLIC_API_URL`, so redeploy the static site after changing it. Seller catalog create, edit, delete, promotion settings, and prize images use the authenticated API; no Render filesystem storage is required. Keep large production images in object storage or image URLs because Render free instances are stateless.
 
-MongoDB Atlas M0 and Render free tiers are suitable for a demo only, not the stated 10k concurrent-user target. That requires load testing, a horizontally scalable compute tier, Redis-backed distributed rate limiting/cache, and a paid Atlas cluster with appropriate connection-pool and index design.
+MongoDB Atlas M0 and Render free tiers are suitable for a demo only, not the stated 10k concurrent-user target. That requires load testing, a horizontally scalable compute tier, Redis-backed distributed rate limiting/cache, and a paid Atlas cluster with appropriate connection-pool and index design. ok
