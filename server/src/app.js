@@ -17,6 +17,68 @@ const productImageRule = Joi.alternatives().try(
 );
 const productSchema = Joi.object({ name: Joi.string().min(2).max(140).required(), description: Joi.string().max(2000).required(), category: Joi.string().required(), price: Joi.number().min(0).required(), stock: Joi.number().integer().min(0).required(), imageURL: productImageRule.required(), images: Joi.array().items(productImageRule).max(6).default([]), promotion: Joi.object({ enabled: Joi.boolean().required(), entryFee: Joi.number().min(0).required(), prize: Joi.string().min(2).max(120).required(), prizeImageURL: productImageRule.optional() }).optional() });
 app.get('/health', (_, res) => res.json({ ok: true }));
+app.post('/api/orders', auth(), async (req, res, next) => {
+  try {
+    const v = await Joi.object({
+      items: Joi.array().items(Joi.object({
+        productId: Joi.string().required(),
+        quantity: Joi.number().integer().min(1).max(20).required(),
+        prizeEntry: Joi.boolean().default(false),
+      })).min(1).required(),
+      delivery: Joi.object({
+        address: Joi.string().min(10).required(),
+        contact: Joi.string().min(7).required(),
+        community: Joi.string().min(2).required(),
+        nodalPoint: Joi.string().min(2).required(),
+      }).required(),
+      paymentResult: Joi.string().valid('success', 'failure').default('success'),
+    }).validateAsync(req.body);
+    if (v.paymentResult === 'failure') return res.status(402).json({ message: 'Dummy payment declined. Try again.' });
+
+    const products = await Product.find({ _id: { $in: v.items.map((item) => item.productId) } }).populate('seller');
+    if (products.length !== v.items.length) return res.status(400).json({ message: 'One or more products are unavailable' });
+
+    const map = new Map(products.map((product) => [String(product._id), product]));
+    const items = v.items.map((item) => {
+      const product = map.get(item.productId);
+      if (product.stock < item.quantity) throw Object.assign(new Error(`${product.name} is out of stock`), { status: 409 });
+      return {
+        product: product._id,
+        name: product.name,
+        price: product.price,
+        quantity: item.quantity,
+        imageURL: product.imageURL,
+        prizeEntry: item.prizeEntry && Boolean(product.promotion?.enabled),
+      };
+    });
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const prizeEntryTotal = items.reduce((sum, item) => {
+      if (!item.prizeEntry) return sum;
+      const product = map.get(String(item.product));
+      return sum + (Number(product.promotion?.entryFee) || 399);
+    }, 0);
+    const platformDiscountRate = items.some((item) => item.prizeEntry) ? Math.floor(Math.random() * 6) + 5 : 0;
+    const platformDiscountAmount = Math.round(subtotal * platformDiscountRate / 100);
+    const total = subtotal + prizeEntryTotal - platformDiscountAmount;
+
+    await Promise.all(v.items.map((item) => Product.updateOne({ _id: item.productId }, { $inc: { stock: -item.quantity } })));
+    const order = await Order.create({
+      buyer: req.user.id,
+      items,
+      subtotal,
+      prizeEntryTotal,
+      platformDiscountRate,
+      platformDiscountAmount,
+      total,
+      delivery: { ...v.delivery, eta: '3-5 business days' },
+    });
+    const buyer = await User.findById(req.user.id);
+    sendOrderEmail({ buyer, order, sellerEmail: products[0].seller?.email }).catch(() => {});
+    res.status(201).json(order);
+  } catch (error) {
+    next(error);
+  }
+});
 app.post('/api/auth/register', async (req,res,next) => { try { const v = await Joi.object({ name:Joi.string().min(2).required(), email:emailRule, password:Joi.string().min(8).required(), role:Joi.string().valid('buyer','seller','admin').default('buyer'), gstNumber:Joi.when('role',{is:'seller',then:Joi.string().trim().uppercase().pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/).required().messages({'string.pattern.base':'Enter a valid 15-character GSTIN'}),otherwise:Joi.forbidden()}) }).validateAsync(req.body); if (await User.exists({email:v.email})) return res.status(409).json({message:'Email already registered'}); const user=await User.create({...v,password:await bcrypt.hash(v.password,12)}); res.status(201).json({token:sign(user),user:{id:user._id,name:user.name,email:user.email,role:user.role,gstNumber:user.gstNumber}}); } catch(e){next(e)} });
 app.post('/api/auth/login', async (req,res,next) => { try { const v=await Joi.object({email:emailRule,password:Joi.string().required()}).validateAsync(req.body); const user=await User.findOne({email:v.email}).select('+password'); if(!user||!(await bcrypt.compare(v.password,user.password))) return res.status(401).json({message:'Invalid email or password'}); res.json({token:sign(user),user:{id:user._id,name:user.name,email:user.email,role:user.role,gstNumber:user.gstNumber}}); } catch(e){next(e)} });
 app.get('/api/products',async(req,res,next)=>{try{res.json(await Product.find(req.query.category?{category:req.query.category}:{}).sort('-createdAt').limit(100))}catch(e){next(e)}}); app.get('/api/products/:id',async(req,res,next)=>{try{const p=await Product.findById(req.params.id);if(!p)return res.status(404).json({message:'Product not found'});res.json(p)}catch(e){next(e)}});

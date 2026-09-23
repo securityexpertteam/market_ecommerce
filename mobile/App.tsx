@@ -395,8 +395,30 @@ const Shop = () => {
         promotionSelected={promotionProduct ? promotionOptIns[promotionProduct._id] === true : false}
         platformDiscountRate={platformDiscountRate}
         back={() => setPage('cart')}
-        success={(finalTotal: number, selectedPromotion: Product['promotion']) => {
+        success={async (finalTotal: number, selectedPromotion: Product['promotion'], delivery: { address: string; city: string; state: string; pincode: string; contact: string; community: string; nodalPoint: string }) => {
+          const response = await fetch(`${API}/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiToken}` },
+            body: JSON.stringify({
+              items: cart.map((item) => ({ productId: item._id, quantity: item.quantity, prizeEntry: item.promotion?.enabled && promotionOptIns[item._id] !== false })),
+              delivery: {
+                address: `${delivery.address}, ${delivery.city}, ${delivery.state}, ${delivery.pincode}`,
+                contact: delivery.contact,
+                community: delivery.community,
+                nodalPoint: delivery.nodalPoint,
+              },
+              paymentResult: 'success',
+            }),
+          });
+          if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: 'Unable to place order' }));
+            Alert.alert('Order failed', error.message || 'Unable to place order');
+            return false;
+          }
+          const savedOrder = await response.json();
           const newOrder = createDemoOrder(cart, finalTotal, selectedPromotion);
+          newOrder.id = String(savedOrder._id || newOrder.id);
+          newOrder.total = savedOrder.total;
           setOrders((current) => [newOrder, ...current]);
           setProducts((current) =>
             current.map((product) => {
@@ -407,6 +429,7 @@ const Shop = () => {
           );
           setCart([]);
           setPage('orders');
+          return true;
         }}
       />
     );
@@ -971,9 +994,9 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
             </View>
             <Button
               mode="contained"
-              onPress={() => {
-                Alert.alert('Payment successful', 'Your order is confirmed. ETA: 3–5 business days');
-                success(finalTotal, includePromotion ? promotion : undefined);
+              onPress={async () => {
+                const completed = await success(finalTotal, includePromotion ? promotion : undefined, { ...address, community, nodalPoint });
+                if (completed) Alert.alert('Payment successful', 'Your order is confirmed. ETA: 3-5 business days');
               }}
               buttonColor="#173f3a"
             >

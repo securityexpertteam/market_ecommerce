@@ -8,10 +8,21 @@ const orderSchema = new mongoose.Schema({
     price: Number,
     quantity: Number,
     imageURL: String,
+    prizeEntry: { type: Boolean, default: false },
   }],
+  subtotal: { type: Number, required: true },
+  prizeEntryTotal: { type: Number, min: 0, default: 0 },
+  platformDiscountRate: { type: Number, min: 0, max: 100, default: 0 },
+  platformDiscountAmount: { type: Number, min: 0, default: 0 },
   total: { type: Number, required: true },
   status: { type: String, enum: ['pending', 'confirmed', 'delivered', 'cancelled'], default: 'pending' },
-  delivery: { address: String, contact: String, eta: String },
+  delivery: {
+    address: String,
+    contact: String,
+    community: String,
+    nodalPoint: String,
+    eta: String,
+  },
 }, { timestamps: true });
 
 orderSchema.post('save', async (order) => {
