@@ -798,6 +798,11 @@ const Auth = ({ done }: { done: (value: 'buyer' | 'seller', name: string, token:
     >
       <LinearGradient colors={['rgba(8, 20, 17, 0.78)', 'rgba(8, 20, 17, 0.54)']} style={styles.authBackgroundOverlay}>
         <SafeAreaView style={[styles.page, styles.authPage, styles.center]}>
+          <View style={styles.authIntro}>
+            <Text style={styles.authBrand}>BROWSE</Text>
+            <Text style={styles.authEyebrow}>THE HYPE EDIT</Text>
+            <Text style={styles.authHeroTitle}>Objects with a point of view.</Text>
+          </View>
           <LinearGradient colors={['#fff8eb', '#e8dcc6']} style={styles.authCard}>
         <Text style={styles.pageTitle}>{mode === 'signin' ? (seller ? 'Seller portal' : 'Welcome back') : 'Create account'}</Text>
         <Text style={styles.muted}>A seamless storefront experience for your next order.</Text>
@@ -1356,7 +1361,7 @@ const styles = StyleSheet.create({
   },
   page: {
     flex: 1,
-    backgroundColor: '#d8f1e0',
+    backgroundColor: '#f4f1ea',
   },
   contentWrap: {
     flex: 1,
@@ -1371,19 +1376,19 @@ const styles = StyleSheet.create({
   headerWrap: {
     position: 'relative',
     zIndex: 20,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 12,
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(231, 185, 106, 0.32)',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.12)',
     shadowColor: '#111a18',
     shadowOpacity: 0.08,
     shadowRadius: 18,
@@ -1402,9 +1407,10 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   logo: {
-    fontWeight: '900',
-    fontSize: 19,
-    letterSpacing: 1.5,
+    fontFamily: 'Georgia',
+    fontWeight: '700',
+    fontSize: 24,
+    letterSpacing: 0,
     color: '#f7efe3',
   },
   nav: {
@@ -1515,11 +1521,10 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   heroSection: {
-    marginTop: 8,
-    marginBottom: 24,
-    minHeight: 360,
+    marginBottom: 22,
+    minHeight: 410,
     overflow: 'hidden',
-    borderRadius: 28,
+    borderRadius: 0,
     backgroundColor: '#173f3a',
     shadowColor: '#173f3a',
     shadowOpacity: 0.24,
@@ -1528,7 +1533,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   homeHeroImage: {
-    borderRadius: 28,
+    borderRadius: 0,
   },
   heroOverlay: {
     flex: 1,
@@ -1544,9 +1549,10 @@ const styles = StyleSheet.create({
   heroTitle: {
     maxWidth: 520,
     color: '#ffffff',
-    fontSize: 36,
-    lineHeight: 42,
-    fontWeight: '900',
+    fontFamily: 'Georgia',
+    fontSize: 40,
+    lineHeight: 46,
+    fontWeight: '700',
   },
   heroDescription: {
     maxWidth: 520,
@@ -1610,12 +1616,15 @@ const styles = StyleSheet.create({
     color: '#123c2f',
   },
   categoryShelf: {
-    marginTop: 6,
-    marginBottom: 18,
+    marginTop: 0,
+    marginBottom: 26,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderRadius: 20,
-    backgroundColor: '#173f3a',
+    borderRadius: 0,
+    backgroundColor: '#fffdf8',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#dedbd3',
     shadowColor: '#173f3a',
     shadowOpacity: 0.16,
     shadowRadius: 16,
@@ -1629,7 +1638,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   categorySectionTitle: {
-    color: '#f7efe3',
+    color: '#1d1f1c',
   },
   sectionLink: {
     fontSize: 13,
@@ -1665,24 +1674,24 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   productCard: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
+    backgroundColor: '#fffdf8',
+    borderRadius: 2,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#d9eee0',
+    borderColor: '#dedbd3',
+    shadowColor: '#1d1f1c',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
     marginBottom: 16,
-    shadowColor: '#123c2f',
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 4,
   },
   productCardWide: {
     flex: 1,
     maxWidth: 551,
   },
   productImage: {
-    height: 210,
+    height: 230,
     width: '100%',
     backgroundColor: '#eaf7ee',
   },
@@ -1693,11 +1702,11 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#123c2f',
+    color: '#1d1f1c',
   },
   itemMeta: {
     fontSize: 13,
-    color: '#5a7568',
+    color: '#6d716a',
     marginTop: 4,
   },
   productFooter: {
@@ -1742,7 +1751,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#16805d',
+    color: '#1f5b52',
   },
   priceLarge: {
     fontSize: 32,
@@ -1783,15 +1792,16 @@ const styles = StyleSheet.create({
     borderColor: '#b9dfc9',
   },
   pageTitle: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: '#123c2f',
+    fontFamily: 'Georgia',
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#1d1f1c',
     marginVertical: 10,
   },
   description: {
     fontSize: 16,
     lineHeight: 25,
-    color: '#3d2d4d',
+    color: '#4f5b53',
     marginBottom: 18,
   },
   detailPromotionCard: {
@@ -1858,12 +1868,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   muted: {
-    color: '#6b5e7b',
+    color: '#6d716a',
     fontSize: 13,
   },
   emptyState: {
     textAlign: 'center',
-    color: '#685d77',
+    color: '#6d716a',
     fontSize: 16,
     marginTop: 18,
     fontWeight: '600',
@@ -1872,16 +1882,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 12,
     backgroundColor: '#fff',
-    borderRadius: 18,
+    borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#f0e8ff',
+    borderColor: '#dedbd3',
     marginBottom: 12,
   },
   cartThumb: {
     width: 86,
     height: 86,
-    borderRadius: 16,
-    backgroundColor: '#f1ebff',
+    borderRadius: 2,
+    backgroundColor: '#f4f1ea',
   },
   cartItemMeta: {
     flex: 1,
@@ -1932,12 +1942,12 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     backgroundColor: '#fff',
-    borderRadius: 20,
+    borderRadius: 4,
     padding: 18,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#d9eee0',
-    shadowColor: '#123c2f',
+    borderColor: '#dedbd3',
+    shadowColor: '#1d1f1c',
     shadowOpacity: 0.06,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 10 },
@@ -1949,7 +1959,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   summaryTotal: {
-    fontSize: 30,
+    fontFamily: 'Georgia',
+    fontSize: 32,
     fontWeight: '900',
     marginBottom: 18,
     color: '#123c2f',
@@ -1959,7 +1970,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     marginBottom: 12,
-    borderRadius: 20,
+    borderRadius: 4,
     backgroundColor: '#173f3a',
     borderWidth: 1,
     borderColor: '#d8b56c',
@@ -2079,15 +2090,37 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 620,
     alignSelf: 'center',
-    borderRadius: 28,
-    padding: 32,
+    borderRadius: 4,
+    padding: 26,
     borderWidth: 1,
-    borderColor: '#c99a52',
+    borderColor: '#dedbd3',
     shadowColor: '#000000',
     shadowOpacity: 0.32,
     shadowRadius: 30,
     shadowOffset: { width: 0, height: 18 },
     elevation: 10,
+  },
+  authIntro: {
+    width: '100%',
+    maxWidth: 620,
+    alignSelf: 'center',
+    paddingHorizontal: 4,
+    paddingBottom: 18,
+  },
+  authBrand: {
+    color: '#ffffff',
+    fontFamily: 'Georgia',
+    fontSize: 27,
+    fontWeight: '700',
+  },
+  authHeroTitle: {
+    maxWidth: 440,
+    marginTop: 4,
+    color: '#ffffff',
+    fontFamily: 'Georgia',
+    fontSize: 32,
+    lineHeight: 37,
+    fontWeight: '700',
   },
   authLogo: {
     color: '#173f3a',
@@ -2102,8 +2135,8 @@ const styles = StyleSheet.create({
   },
   authToggleRow: {
     flexDirection: 'row',
-    backgroundColor: '#d6c5a8',
-    borderRadius: 14,
+    backgroundColor: '#f4f1ea',
+    borderRadius: 4,
     padding: 4,
     marginTop: 18,
     marginBottom: 10,
@@ -2111,7 +2144,7 @@ const styles = StyleSheet.create({
   authToggle: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: 2,
     alignItems: 'center',
   },
   authToggleActive: {
@@ -2160,9 +2193,9 @@ const styles = StyleSheet.create({
   roleOption: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#cdbb9d',
-    backgroundColor: 'rgba(255, 252, 244, 0.72)',
-    borderRadius: 12,
+    borderColor: '#dedbd3',
+    backgroundColor: '#fffdf8',
+    borderRadius: 4,
     paddingVertical: 12,
     alignItems: 'center',
   },
@@ -2176,7 +2209,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   roleOptionText: {
-    color: '#4b3b5f',
+    color: '#4f5b53',
     fontWeight: '700',
   },
   roleOptionTextActive: {
@@ -2194,15 +2227,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   input: {
-    backgroundColor: 'rgba(255, 252, 244, 0.9)',
+    backgroundColor: '#fffdf8',
     borderWidth: 1,
-    borderColor: '#d9cbaa',
-    borderRadius: 14,
+    borderColor: '#dedbd3',
+    borderRadius: 4,
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginVertical: 8,
     fontSize: 16,
-    color: '#2f1d3f',
+    color: '#1d1f1c',
   },
   progressTrack: {
     height: 8,
@@ -2223,11 +2256,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#fff',
-    borderRadius: 18,
+    borderRadius: 4,
     padding: 14,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: '#f0e8ff',
+    borderColor: '#dedbd3',
   },
   sellerScrollContent: {
     width: '100%',
@@ -2245,14 +2278,14 @@ const styles = StyleSheet.create({
     gap: 6,
     padding: 4,
     marginBottom: 18,
-    borderRadius: 14,
-    backgroundColor: '#d8e2db',
+    borderRadius: 4,
+    backgroundColor: '#dedbd3',
   },
   sellerTab: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: 2,
   },
   sellerTabActive: {
     backgroundColor: '#173f3a',
@@ -2275,8 +2308,9 @@ const styles = StyleSheet.create({
   sellerTitle: {
     marginTop: 5,
     color: '#173f3a',
-    fontSize: 30,
-    fontWeight: '900',
+    fontFamily: 'Georgia',
+    fontSize: 34,
+    fontWeight: '700',
   },
   sellerMetricGrid: {
     flexDirection: 'row',
