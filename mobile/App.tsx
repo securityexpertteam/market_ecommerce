@@ -102,6 +102,28 @@ type StoreOrder = {
 };
 
 const formatPrice = (value: number) => `₹${value.toLocaleString('en-IN')}`;
+const randomPlatformDiscountRate = () => Math.floor(Math.random() * 6) + 5;
+
+const communityNodalPoints: Record<string, string[]> = {
+  'My Home Avatar, Gachibowli': ['Gachibowli Stadium', 'DLF Cyber City', 'Biodiversity Junction'],
+  'My Home Vihanga, Gachibowli': ['Gachibowli Flyover', 'Wipro Circle', 'ISB Road Junction'],
+  'My Home Mangala, Kondapur': ['Kondapur RTO', 'Botanical Garden', 'Kothaguda Junction'],
+  'Rajapushpa Provincia, Narsingi': ['Narsingi ORR Exit', 'Puppalaguda Junction', 'Khajaguda Hills'],
+  'Rajapushpa Regalia, Kokapet': ['Kokapet ORR Exit', 'Neopolis Junction', 'Golden Mile Road'],
+  'Aparna Sarovar, Nallagandla': ['Nallagandla Flyover', 'Lingampally Railway Station', 'Tellapur Road Junction'],
+  'Aparna Zenon, Puppalaguda': ['Puppalaguda Main Road', 'Manikonda Market', 'Lanco Hills Circle'],
+  'Financial District': ['Nanakramguda Circle', 'Waverock SEZ', 'Q-City Junction'],
+  'HITEC City': ['Cyber Towers', 'Shilparamam', 'Raidurg Metro Station'],
+  'Madhapur': ['Madhapur Police Station', 'Ayyappa Society', 'Durgam Cheruvu Metro Station'],
+  'Kukatpally': ['KPHB Metro Station', 'JNTU Junction', 'Forum Sujana Mall'],
+  'Miyapur': ['Miyapur Metro Station', 'Miyapur X Road', 'Madeenaguda Junction'],
+  'Banjara Hills': ['GVK One Mall', 'Road No. 12 Junction', 'Basheerbagh Flyover'],
+  'Jubilee Hills': ['Jubilee Check Post', 'Peddamma Temple', 'Film Nagar Road'],
+  'Secunderabad': ['Secunderabad Railway Station', 'Paradise Circle', 'Tarnaka Junction'],
+  'Uppal': ['Uppal Metro Station', 'Nagole Junction', 'Uppal Stadium'],
+  'LB Nagar': ['LB Nagar Metro Station', 'Kothapet Fruit Market', 'Vanasthalipuram Junction'],
+};
+const communities = Object.keys(communityNodalPoints);
 
 const createDemoOrder = (items: Cart[], totalOverride?: number, promotion?: Product['promotion']): StoreOrder => ({
   id: `ord_${Date.now()}`,
@@ -235,6 +257,7 @@ const Shop = () => {
   const [cartNotice, setCartNotice] = useState({ visible: false, itemName: '' });
   const [menuOpen, setMenuOpen] = useState(false);
   const [promotionOptIns, setPromotionOptIns] = useState<Record<string, boolean>>({});
+  const [platformDiscountRate, setPlatformDiscountRate] = useState<number | null>(null);
 
   useEffect(() => {
     if (!API) return;
@@ -258,6 +281,7 @@ const Shop = () => {
     });
     if (p.promotion?.enabled) {
       setPromotionOptIns((current) => ({ ...current, [p._id]: current[p._id] ?? true }));
+      setPlatformDiscountRate((current) => current ?? randomPlatformDiscountRate());
     }
   };
 
@@ -269,7 +293,13 @@ const Shop = () => {
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const cartPromotionFee = cart.reduce((sum, item) => item.promotion?.enabled && promotionOptIns[item._id] !== false ? sum + (Number(item.promotion.entryFee) || 399) : sum, 0);
-  const cartGrandTotal = total + cartPromotionFee;
+  const hasPrizeItem = cart.some((item) => item.promotion?.enabled && promotionOptIns[item._id] !== false);
+  const cartPlatformDiscount = hasPrizeItem && platformDiscountRate ? Math.round(total * platformDiscountRate / 100) : 0;
+  const cartGrandTotal = total + cartPromotionFee - cartPlatformDiscount;
+
+  useEffect(() => {
+    if (!hasPrizeItem && platformDiscountRate !== null) setPlatformDiscountRate(null);
+  }, [hasPrizeItem, platformDiscountRate]);
   const visibleProducts =
     activeCategory === 'All' ? products : products.filter((item) => item.category === activeCategory);
 
@@ -363,6 +393,7 @@ const Shop = () => {
         total={total}
         promotion={promotion}
         promotionSelected={promotionProduct ? promotionOptIns[promotionProduct._id] === true : false}
+        platformDiscountRate={platformDiscountRate}
         back={() => setPage('cart')}
         success={(finalTotal: number, selectedPromotion: Product['promotion']) => {
           const newOrder = createDemoOrder(cart, finalTotal, selectedPromotion);
@@ -410,6 +441,7 @@ const Shop = () => {
           {cart.length > 0 && (
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>Order total</Text>
+              {cartPlatformDiscount > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform discount ({platformDiscountRate}%)</Text><Text style={styles.checkoutLineValue}>- {formatPrice(cartPlatformDiscount)}</Text></View>}
               {cartPromotionFee > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Bonus entry</Text><Text style={styles.checkoutLineValue}>+ {formatPrice(cartPromotionFee)}</Text></View>}
               <Text style={styles.summaryTotal}>{formatPrice(cartGrandTotal)}</Text>
               <Button mode="contained" onPress={() => setPage('checkout')} buttonColor="#173f3a">
@@ -838,12 +870,20 @@ const Auth = ({ done }: { done: (value: 'buyer' | 'seller', name: string, token:
   );
 };
 
-const Checkout = ({ total, promotion, promotionSelected, back, success }: any) => {
+const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, back, success }: any) => {
   const [step, setStep] = useState(1);
   const [includePromotion, setIncludePromotion] = useState(Boolean(promotionSelected));
   const [address, setAddress] = useState({ line: '', city: '', state: '', pincode: '', contact: '' });
+  const [community, setCommunity] = useState(communities[0]);
+  const [nodalPoint, setNodalPoint] = useState(communityNodalPoints[communities[0]][0]);
+  const nodalPoints = communityNodalPoints[community] || [];
   const promotionFee = includePromotion && promotion?.enabled ? Number(promotion.entryFee) || 399 : 0;
-  const finalTotal = total + promotionFee;
+  const platformDiscount = includePromotion && platformDiscountRate ? Math.round(total * platformDiscountRate / 100) : 0;
+  const finalTotal = total + promotionFee - platformDiscount;
+
+  useEffect(() => {
+    setNodalPoint(nodalPoints[0] || '');
+  }, [community]);
 
   return (
     <SafeAreaView style={styles.page}>
@@ -859,6 +899,22 @@ const Checkout = ({ total, promotion, promotionSelected, back, success }: any) =
 
         {step === 1 ? (
           <>
+            <Text style={styles.fieldLabel}>Community</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionRow}>
+              {communities.map((option) => (
+                <Pressable key={option} style={[styles.optionChip, community === option && styles.optionChipActive]} onPress={() => setCommunity(option)}>
+                  <Text style={[styles.optionChipText, community === option && styles.optionChipTextActive]}>{option}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+            <Text style={styles.fieldLabel}>Nearby nodal point</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionRow}>
+              {nodalPoints.map((option) => (
+                <Pressable key={option} style={[styles.optionChip, nodalPoint === option && styles.optionChipActive]} onPress={() => setNodalPoint(option)}>
+                  <Text style={[styles.optionChipText, nodalPoint === option && styles.optionChipTextActive]}>{option}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
             <Text style={styles.fieldLabel}>Street address</Text>
             <TextInput style={styles.input} placeholder="House number, street, area" value={address.line} onChangeText={(line) => setAddress((current) => ({ ...current, line }))} />
             <View style={styles.inlineFields}>
@@ -904,7 +960,10 @@ const Checkout = ({ total, promotion, promotionSelected, back, success }: any) =
             )}
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>Payment</Text>
+              <View style={styles.checkoutLine}><Text style={styles.muted}>Community</Text><Text style={styles.checkoutLineValue}>{community}</Text></View>
+              <View style={styles.checkoutLine}><Text style={styles.muted}>Nodal point</Text><Text style={styles.checkoutLineValue}>{nodalPoint}</Text></View>
               <View style={styles.checkoutLine}><Text style={styles.muted}>Products</Text><Text style={styles.checkoutLineValue}>{formatPrice(total)}</Text></View>
+              {platformDiscount > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform discount ({platformDiscountRate}%)</Text><Text style={styles.checkoutLineValue}>- {formatPrice(platformDiscount)}</Text></View>}
               {promotionFee > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Bonus entry</Text><Text style={styles.checkoutLineValue}>+ {formatPrice(promotionFee)}</Text></View>}
               <View style={styles.checkoutDivider} />
               <Text style={styles.summaryTotal}>{formatPrice(finalTotal)}</Text>
@@ -2045,6 +2104,30 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginTop: 10,
     marginBottom: 2,
+  },
+  optionRow: {
+    gap: 8,
+    paddingVertical: 8,
+  },
+  optionChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#c9d8cd',
+    backgroundColor: '#fff',
+  },
+  optionChipActive: {
+    borderColor: '#173f3a',
+    backgroundColor: '#173f3a',
+  },
+  optionChipText: {
+    color: '#245545',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  optionChipTextActive: {
+    color: '#fff',
   },
   fieldHalf: {
     flex: 1,
