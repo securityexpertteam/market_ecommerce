@@ -18,6 +18,8 @@ type Product = {
 
 type Cart = Product & { quantity: number };
 
+// Expo replaces EXPO_PUBLIC_ variables in the web bundle during export.
+// @ts-expect-error Expo's generated env type does not include project variables.
 const API = process.env.EXPO_PUBLIC_API_URL || 'https://market-ecommerce.onrender.com/api';
 
 const featured: Product[] = [
@@ -521,16 +523,7 @@ const Shop = () => {
               source={{ uri: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1400&q=85' }}
               style={styles.heroSection}
               imageStyle={styles.homeHeroImage}
-            >
-              <LinearGradient colors={['rgba(17, 28, 25, 0.88)', 'rgba(17, 28, 25, 0.22)']} style={styles.heroOverlay}>
-                <Text style={styles.heroEyebrow}>THE HYPE EDIT</Text>
-                <Text style={styles.heroTitle}>Objects with a point of view.</Text>
-                <Text style={styles.heroDescription}>Considered essentials, standout pieces, and small upgrades for everyday living.</Text>
-                <Button mode="contained" onPress={() => setActiveCategory('All')} buttonColor="#173f3a" textColor="#f7efe3">
-                  Explore the collection
-                </Button>
-              </LinearGradient>
-            </ImageBackground>
+            />
             <View style={styles.categoryShelf}>
               <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, styles.categorySectionTitle]}>Shop categories</Text>
@@ -798,11 +791,6 @@ const Auth = ({ done }: { done: (value: 'buyer' | 'seller', name: string, token:
     >
       <LinearGradient colors={['rgba(8, 20, 17, 0.78)', 'rgba(8, 20, 17, 0.54)']} style={styles.authBackgroundOverlay}>
         <SafeAreaView style={[styles.page, styles.authPage, styles.center]}>
-          <View style={styles.authIntro}>
-            <Text style={styles.authBrand}>BROWSE</Text>
-            <Text style={styles.authEyebrow}>THE HYPE EDIT</Text>
-            <Text style={styles.authHeroTitle}>Objects with a point of view.</Text>
-          </View>
           <LinearGradient colors={['#fff8eb', '#e8dcc6']} style={styles.authCard}>
         <Text style={styles.pageTitle}>{mode === 'signin' ? (seller ? 'Seller portal' : 'Welcome back') : 'Create account'}</Text>
         <Text style={styles.muted}>A seamless storefront experience for your next order.</Text>
@@ -1522,7 +1510,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     marginBottom: 22,
-    minHeight: 410,
+    minHeight: 270,
     overflow: 'hidden',
     borderRadius: 0,
     backgroundColor: '#173f3a',
@@ -2111,28 +2099,6 @@ const styles = StyleSheet.create({
     shadowRadius: 30,
     shadowOffset: { width: 0, height: 18 },
     elevation: 10,
-  },
-  authIntro: {
-    width: '100%',
-    maxWidth: 620,
-    alignSelf: 'center',
-    paddingHorizontal: 4,
-    paddingBottom: 18,
-  },
-  authBrand: {
-    color: '#ffffff',
-    fontFamily: 'Georgia',
-    fontSize: 27,
-    fontWeight: '700',
-  },
-  authHeroTitle: {
-    maxWidth: 440,
-    marginTop: 4,
-    color: '#ffffff',
-    fontFamily: 'Georgia',
-    fontSize: 32,
-    lineHeight: 37,
-    fontWeight: '700',
   },
   authLogo: {
     color: '#173f3a',
