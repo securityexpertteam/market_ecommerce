@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "build": "expo export --platform web --output-dir dist",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -21,6 +22,7 @@
     "react-native-web": "~0.19.10"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.0",
     "@types/react": "~18.2.79",
     "typescript": "~5.3.3"
   }
