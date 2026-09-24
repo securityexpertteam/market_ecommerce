@@ -1019,7 +1019,7 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
   const [nodalPointOpen, setNodalPointOpen] = useState(false);
   const [stateOpen, setStateOpen] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
-  const [validationMessage, setValidationMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const nodalPoints = communityNodalPoints[community] || [];
   const cities = indiaStateCities[address.state] || [];
   const promotionFee = includePromotion && promotion?.enabled ? Number(promotion.entryFee) || 399 : 0;
@@ -1036,12 +1036,12 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
     const trimmedState = address.state.trim();
     const trimmedPincode = address.pincode.trim();
     const trimmedContact = address.contact.trim();
-    if (trimmedAddress.length < 10) return setValidationMessage('Enter a complete street address.');
-    if (!indiaStateCities[trimmedState]) return setValidationMessage('Select a valid state.');
-    if (!cities.includes(trimmedCity)) return setValidationMessage('Select a valid city.');
-    if (!/^\d{6}$/.test(trimmedPincode)) return setValidationMessage('Enter a valid 6-digit pincode.');
-    if (!/^(?:\+91[6-9]\d{9}|[6-9]\d{9})$/.test(trimmedContact)) return setValidationMessage('Enter a valid 10-digit Indian mobile number.');
-    setValidationMessage('');
+    if (trimmedAddress.length < 10) return setFieldErrors({ line: 'Enter a complete street address.' });
+    if (!indiaStateCities[trimmedState]) return setFieldErrors({ state: 'Select a valid state.' });
+    if (!cities.includes(trimmedCity)) return setFieldErrors({ city: 'Select a valid city.' });
+    if (!/^\d{6}$/.test(trimmedPincode)) return setFieldErrors({ pincode: 'Enter a valid 6-digit pincode.' });
+    if (!/^(?:\+91[6-9]\d{9}|[6-9]\d{9})$/.test(trimmedContact)) return setFieldErrors({ contact: 'Enter a valid 10-digit Indian mobile number.' });
+    setFieldErrors({});
     setStep(2);
   };
 
@@ -1085,6 +1085,7 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
             </View>}
             <Text style={styles.fieldLabel}>Street address</Text>
             <TextInput style={styles.input} placeholder="House number, street, area" value={address.line} onChangeText={(line) => setAddress((current) => ({ ...current, line }))} />
+            {fieldErrors.line ? <Text style={styles.fieldError}>{fieldErrors.line}</Text> : null}
             <View style={styles.inlineFields}>
               <View style={styles.fieldHalf}>
                 <Text style={styles.fieldLabel}>City</Text>
@@ -1099,6 +1100,7 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
                     </Pressable>
                   ))}
                 </View>}
+                {fieldErrors.city ? <Text style={styles.fieldError}>{fieldErrors.city}</Text> : null}
               </View>
               <View style={styles.fieldHalf}>
                 <Text style={styles.fieldLabel}>State</Text>
@@ -1113,16 +1115,19 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
                     </Pressable>
                   ))}
                 </View>}
+                {fieldErrors.state ? <Text style={styles.fieldError}>{fieldErrors.state}</Text> : null}
               </View>
             </View>
             <View style={styles.inlineFields}>
               <View style={styles.fieldHalf}>
                 <Text style={styles.fieldLabel}>Pincode</Text>
                 <TextInput style={styles.input} placeholder="6-digit pincode" value={address.pincode} onChangeText={(pincode) => setAddress((current) => ({ ...current, pincode }))} keyboardType="number-pad" maxLength={6} />
+                {fieldErrors.pincode ? <Text style={styles.fieldError}>{fieldErrors.pincode}</Text> : null}
               </View>
               <View style={styles.fieldHalf}>
                 <Text style={styles.fieldLabel}>Contact number</Text>
                 <TextInput style={styles.input} placeholder="Mobile number" value={address.contact} onChangeText={(contact) => setAddress((current) => ({ ...current, contact }))} keyboardType="phone-pad" />
+                {fieldErrors.contact ? <Text style={styles.fieldError}>{fieldErrors.contact}</Text> : null}
               </View>
             </View>
             <View style={styles.checkoutActions}>
@@ -1130,7 +1135,6 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
                 Continue to payment
               </Button>
             </View>
-            {validationMessage ? <Text style={styles.validationMessage}>{validationMessage}</Text> : null}
           </>
         ) : (
           <>
@@ -2405,6 +2409,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#b42318',
     fontSize: 13,
+    fontWeight: '700',
+  },
+  fieldError: {
+    marginTop: 4,
+    color: '#b42318',
+    fontSize: 12,
     fontWeight: '700',
   },
   fieldHalf: {
