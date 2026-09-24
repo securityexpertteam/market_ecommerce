@@ -125,8 +125,8 @@ const communityNodalPoints: Record<string, string[]> = {
 };
 const communities = Object.keys(communityNodalPoints);
 const indiaStateCities: Record<string, string[]> = {
-  Andhra Pradesh: ['Visakhapatnam', 'Vijayawada', 'Guntur', 'Tirupati', 'Nellore', 'Kurnool'],
-  Arunachal Pradesh: ['Itanagar', 'Naharlagun', 'Tawang', 'Pasighat'],
+  'Andhra Pradesh': ['Visakhapatnam', 'Vijayawada', 'Guntur', 'Tirupati', 'Nellore', 'Kurnool'],
+  'Arunachal Pradesh': ['Itanagar', 'Naharlagun', 'Tawang', 'Pasighat'],
   Assam: ['Guwahati', 'Dibrugarh', 'Silchar', 'Jorhat', 'Tezpur'],
   Bihar: ['Patna', 'Gaya', 'Muzaffarpur', 'Bhagalpur', 'Darbhanga'],
   Chhattisgarh: ['Raipur', 'Bhilai', 'Bilaspur', 'Korba', 'Durg'],
@@ -137,7 +137,7 @@ const indiaStateCities: Record<string, string[]> = {
   Jharkhand: ['Ranchi', 'Jamshedpur', 'Dhanbad', 'Bokaro', 'Deoghar'],
   Karnataka: ['Bengaluru', 'Mysuru', 'Mangaluru', 'Hubballi', 'Belagavi', 'Shivamogga'],
   Kerala: ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur', 'Kollam', 'Kannur'],
-  Madhya Pradesh: ['Bhopal', 'Indore', 'Jabalpur', 'Gwalior', 'Ujjain', 'Sagar'],
+  'Madhya Pradesh': ['Bhopal', 'Indore', 'Jabalpur', 'Gwalior', 'Ujjain', 'Sagar'],
   Maharashtra: ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Thane', 'Aurangabad', 'Kolhapur'],
   Manipur: ['Imphal', 'Thoubal', 'Churachandpur'],
   Meghalaya: ['Shillong', 'Tura', 'Jowai'],
@@ -150,7 +150,7 @@ const indiaStateCities: Record<string, string[]> = {
   'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem', 'Tirunelveli'],
   Telangana: ['Hyderabad', 'Warangal', 'Nizamabad', 'Karimnagar', 'Khammam'],
   Tripura: ['Agartala', 'Udaipur', 'Dharmanagar'],
-  Uttar Pradesh: ['Lucknow', 'Noida', 'Kanpur', 'Varanasi', 'Agra', 'Prayagraj', 'Ghaziabad'],
+  'Uttar Pradesh': ['Lucknow', 'Noida', 'Kanpur', 'Varanasi', 'Agra', 'Prayagraj', 'Ghaziabad'],
   Uttarakhand: ['Dehradun', 'Haridwar', 'Rishikesh', 'Haldwani', 'Nainital'],
   'West Bengal': ['Kolkata', 'Howrah', 'Siliguri', 'Durgapur', 'Asansol'],
   Delhi: ['New Delhi', 'Delhi'],
