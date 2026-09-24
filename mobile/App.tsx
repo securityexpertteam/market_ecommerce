@@ -837,6 +837,7 @@ const OrderCard = ({ order, index, onCancel }: { order: StoreOrder; index: numbe
           <Text style={[styles.statusText, { color: statusColor }]}>{order.status}</Text>
         </View>
       </View>
+      <Text style={styles.orderItemsLabel}>ITEMS IN THIS ORDER</Text>
 
       {order.items.map((item) => (
         <View key={`${order.id}-${item.productId}`} style={styles.orderItemRow}>
@@ -2949,6 +2950,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#edf2ed',
+  },
+  orderItemsLabel: {
+    marginBottom: 2,
+    color: '#8a968e',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.2,
   },
   orderId: {
     fontWeight: '800',
@@ -2974,6 +2985,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f3ef',
   },
   orderThumb: {
     width: 52,
@@ -3003,6 +3016,7 @@ const styles = StyleSheet.create({
   },
   orderPromotionCopy: {
     flex: 1,
+    marginLeft: 10,
   },
   orderPromotionLabel: {
     color: '#a8752d',
@@ -3017,6 +3031,9 @@ const styles = StyleSheet.create({
   },
   orderFooter: {
     marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e7eee8',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
