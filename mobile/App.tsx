@@ -2456,7 +2456,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     width: '100%',
     height: '100%',
-    transform: [{ translateX: -58 }, { scale: 1.06 }],
+    transform: [{ translateX: -78 }, { scale: 1.06 }],
   },
   authBackgroundOverlay: {
     flex: 1,
