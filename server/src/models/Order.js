@@ -12,6 +12,8 @@ const orderSchema = new mongoose.Schema({
   }],
   subtotal: { type: Number, required: true },
   prizeEntryTotal: { type: Number, min: 0, default: 0 },
+  platformFeeRate: { type: Number, min: 0, max: 100, default: 3 },
+  platformFeeAmount: { type: Number, min: 0, default: 0 },
   platformDiscountRate: { type: Number, min: 0, max: 100, default: 0 },
   platformDiscountAmount: { type: Number, min: 0, default: 0 },
   total: { type: Number, required: true },

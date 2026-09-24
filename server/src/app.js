@@ -94,9 +94,11 @@ app.post('/api/orders', auth(), async (req, res, next) => {
       const product = map.get(String(item.product));
       return sum + (Number(product.promotion?.entryFee) || 399);
     }, 0);
+    const platformFeeRate = 3;
+    const platformFeeAmount = Math.round(subtotal * platformFeeRate / 100);
     const platformDiscountRate = items.some((item) => item.prizeEntry) ? (v.platformDiscountRate || Math.floor(Math.random() * 6) + 5) : 0;
     const platformDiscountAmount = Math.round(subtotal * platformDiscountRate / 100);
-    const total = subtotal + prizeEntryTotal - platformDiscountAmount;
+    const total = subtotal + prizeEntryTotal + platformFeeAmount - platformDiscountAmount;
 
     await Promise.all(v.items.map((item) => Product.updateOne({ _id: item.productId }, { $inc: { stock: -item.quantity } })));
     const order = await Order.create({
@@ -104,6 +106,8 @@ app.post('/api/orders', auth(), async (req, res, next) => {
       items,
       subtotal,
       prizeEntryTotal,
+      platformFeeRate,
+      platformFeeAmount,
       platformDiscountRate,
       platformDiscountAmount,
       total,

@@ -102,6 +102,7 @@ type StoreOrder = {
 };
 
 const formatPrice = (value: number) => `₹${value.toLocaleString('en-IN')}`;
+const PLATFORM_FEE_RATE = 3;
 const randomPlatformDiscountRate = () => Math.floor(Math.random() * 6) + 5;
 
 const communityNodalPoints: Record<string, string[]> = {
@@ -394,7 +395,8 @@ const Shop = () => {
   const cartPromotionFee = cart.reduce((sum, item) => item.promotion?.enabled && promotionOptIns[item._id] !== false ? sum + (Number(item.promotion.entryFee) || 399) : sum, 0);
   const hasPrizeItem = cart.some((item) => item.promotion?.enabled && promotionOptIns[item._id] !== false);
   const cartPlatformDiscount = hasPrizeItem && platformDiscountRate ? Math.round(total * platformDiscountRate / 100) : 0;
-  const cartGrandTotal = total + cartPromotionFee - cartPlatformDiscount;
+  const cartPlatformFee = Math.round(total * PLATFORM_FEE_RATE / 100);
+  const cartGrandTotal = total + cartPromotionFee + cartPlatformFee - cartPlatformDiscount;
 
   useEffect(() => {
     if (!hasPrizeItem && platformDiscountRate !== null) setPlatformDiscountRate(null);
@@ -503,6 +505,7 @@ const Shop = () => {
         platformDiscountRate={platformDiscountRate}
         promotionFeeTotal={cartPromotionFee}
         platformDiscountAmount={cartPlatformDiscount}
+        platformFeeAmount={cartPlatformFee}
         back={() => setPage('cart')}
         success={async (finalTotal: number, selectedPromotion: Product['promotion'], delivery: { address: string; city: string; state: string; pincode: string; contact: string; community: string; nodalPoint: string }, includePromotion: boolean) => {
           const response = await fetch(`${API}/orders`, {
@@ -585,6 +588,7 @@ const Shop = () => {
               <Text style={styles.summaryLabel}>Order total</Text>
               {cartPlatformDiscount > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform discount ({platformDiscountRate}%)</Text><Text style={styles.checkoutLineValue}>- {formatPrice(cartPlatformDiscount)}</Text></View>}
               {cartPromotionFee > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Bonus entry</Text><Text style={styles.checkoutLineValue}>+ {formatPrice(cartPromotionFee)}</Text></View>}
+              {cartPlatformFee > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform fee ({PLATFORM_FEE_RATE}%)</Text><Text style={styles.checkoutLineValue}>+ {formatPrice(cartPlatformFee)}</Text></View>}
               <Text style={styles.summaryTotal}>{formatPrice(cartGrandTotal)}</Text>
               <Button mode="contained" onPress={() => setPage('checkout')} buttonColor="#173f3a">
                 Continue to checkout
@@ -1013,7 +1017,7 @@ const Auth = ({ done }: { done: (value: 'buyer' | 'seller', name: string, token:
   );
 };
 
-const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, promotionFeeTotal, platformDiscountAmount, back, success }: any) => {
+const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, promotionFeeTotal, platformDiscountAmount, platformFeeAmount, back, success }: any) => {
   const [step, setStep] = useState(1);
   const [includePromotion, setIncludePromotion] = useState(Boolean(promotionSelected));
   const [address, setAddress] = useState({ line: '', city: 'Hyderabad', state: 'Telangana', pincode: '', contact: '' });
@@ -1028,7 +1032,7 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, p
   const cities = indiaStateCities[address.state] || [];
   const promotionFee = includePromotion ? promotionFeeTotal : 0;
   const platformDiscount = includePromotion ? platformDiscountAmount : 0;
-  const finalTotal = total + promotionFee - platformDiscount;
+  const finalTotal = total + promotionFee + platformFeeAmount - platformDiscount;
 
   useEffect(() => {
     setNodalPoint(nodalPoints[0] || '');
@@ -1162,6 +1166,7 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, p
               <View style={styles.checkoutLine}><Text style={styles.muted}>Products</Text><Text style={styles.checkoutLineValue}>{formatPrice(total)}</Text></View>
               {platformDiscount > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform discount ({platformDiscountRate}%)</Text><Text style={styles.checkoutLineValue}>- {formatPrice(platformDiscount)}</Text></View>}
               {promotionFee > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Bonus entry</Text><Text style={styles.checkoutLineValue}>+ {formatPrice(promotionFee)}</Text></View>}
+              {platformFeeAmount > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform fee ({PLATFORM_FEE_RATE}%)</Text><Text style={styles.checkoutLineValue}>+ {formatPrice(platformFeeAmount)}</Text></View>}
               <View style={styles.checkoutDivider} />
               <Text style={styles.summaryTotal}>{formatPrice(finalTotal)}</Text>
               <Text style={styles.muted}>Dummy payment · secure checkout</Text>
