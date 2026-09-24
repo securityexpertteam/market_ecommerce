@@ -7,6 +7,7 @@ const cartSchema = new mongoose.Schema({
     quantity: { type: Number, min: 1, max: 20, required: true },
     prizeEntry: { type: Boolean, default: false },
   }],
+  platformDiscountRate: { type: Number, min: 0, max: 10, default: 0 },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Cart', cartSchema);

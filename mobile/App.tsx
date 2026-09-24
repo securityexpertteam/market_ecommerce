@@ -317,7 +317,7 @@ const Shop = () => {
       if (!active) return;
       const restoredCart = (savedCart.items || []).map((entry: any) => entry.product ? { ...entry.product, quantity: entry.quantity } : null).filter(Boolean) as Cart[];
       setCart(restoredCart);
-      if (restoredCart.some((item) => item.promotion?.enabled)) setPlatformDiscountRate((rate) => rate ?? randomPlatformDiscountRate());
+      if (restoredCart.some((item) => item.promotion?.enabled)) setPlatformDiscountRate(savedCart.platformDiscountRate || randomPlatformDiscountRate());
       setPromotionOptIns((current) => {
         const restored = { ...current };
         (savedCart.items || []).forEach((entry: any) => { if (entry.product?._id) restored[entry.product._id] = entry.prizeEntry !== false; });
@@ -346,9 +346,9 @@ const Shop = () => {
     fetch(`${API}/cart`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiToken}` },
-      body: JSON.stringify({ items: cart.map((item) => ({ productId: item._id, quantity: item.quantity, prizeEntry: item.promotion?.enabled && promotionOptIns[item._id] !== false })) }),
+      body: JSON.stringify({ items: cart.map((item) => ({ productId: item._id, quantity: item.quantity, prizeEntry: item.promotion?.enabled && promotionOptIns[item._id] !== false })), platformDiscountRate: hasPrizeItem ? platformDiscountRate || 0 : 0 }),
     }).catch(() => undefined);
-  }, [apiToken, cart, cartHydrated, promotionOptIns]);
+  }, [apiToken, cart, cartHydrated, promotionOptIns, platformDiscountRate]);
 
   const add = (p: Product) => {
     setCart((current) => {
@@ -501,13 +501,15 @@ const Shop = () => {
         promotion={promotion}
         promotionSelected={promotionProduct ? promotionOptIns[promotionProduct._id] === true : false}
         platformDiscountRate={platformDiscountRate}
+        promotionFeeTotal={cartPromotionFee}
+        platformDiscountAmount={cartPlatformDiscount}
         back={() => setPage('cart')}
-        success={async (finalTotal: number, selectedPromotion: Product['promotion'], delivery: { address: string; city: string; state: string; pincode: string; contact: string; community: string; nodalPoint: string }) => {
+        success={async (finalTotal: number, selectedPromotion: Product['promotion'], delivery: { address: string; city: string; state: string; pincode: string; contact: string; community: string; nodalPoint: string }, includePromotion: boolean) => {
           const response = await fetch(`${API}/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiToken}` },
             body: JSON.stringify({
-              items: cart.map((item) => ({ productId: item._id, quantity: item.quantity, prizeEntry: item.promotion?.enabled && promotionOptIns[item._id] !== false })),
+              items: cart.map((item) => ({ productId: item._id, quantity: item.quantity, prizeEntry: includePromotion && item.promotion?.enabled && promotionOptIns[item._id] !== false })),
               delivery: {
                 address: `${delivery.address}, ${delivery.city}, ${delivery.state}, ${delivery.pincode}`,
                 contact: /^\d{10}$/.test(delivery.contact.trim()) ? `+91${delivery.contact.trim()}` : delivery.contact.trim(),
@@ -515,6 +517,7 @@ const Shop = () => {
                 nodalPoint: delivery.nodalPoint,
               },
               paymentResult: 'success',
+                platformDiscountRate: includePromotion ? platformDiscountRate || undefined : undefined,
             }),
           });
           if (!response.ok) {
@@ -1009,7 +1012,7 @@ const Auth = ({ done }: { done: (value: 'buyer' | 'seller', name: string, token:
   );
 };
 
-const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, back, success }: any) => {
+const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, promotionFeeTotal, platformDiscountAmount, back, success }: any) => {
   const [step, setStep] = useState(1);
   const [includePromotion, setIncludePromotion] = useState(Boolean(promotionSelected));
   const [address, setAddress] = useState({ line: '', city: 'Hyderabad', state: 'Telangana', pincode: '', contact: '' });
@@ -1022,8 +1025,8 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const nodalPoints = communityNodalPoints[community] || [];
   const cities = indiaStateCities[address.state] || [];
-  const promotionFee = includePromotion && promotion?.enabled ? Number(promotion.entryFee) || 399 : 0;
-  const platformDiscount = includePromotion && platformDiscountRate ? Math.round(total * platformDiscountRate / 100) : 0;
+  const promotionFee = includePromotion ? promotionFeeTotal : 0;
+  const platformDiscount = includePromotion ? platformDiscountAmount : 0;
   const finalTotal = total + promotionFee - platformDiscount;
 
   useEffect(() => {
@@ -1165,7 +1168,7 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, b
             <Button
               mode="contained"
               onPress={async () => {
-                const completed = await success(finalTotal, includePromotion ? promotion : undefined, { ...address, community, nodalPoint });
+                const completed = await success(finalTotal, includePromotion ? promotion : undefined, { ...address, community, nodalPoint }, includePromotion);
                 if (completed) Alert.alert('Payment successful', 'Your order is confirmed. ETA: 3-5 business days');
               }}
               buttonColor="#173f3a"

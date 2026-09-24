@@ -20,19 +20,20 @@ app.get('/health', (_, res) => res.json({ ok: true }));
 app.get('/api/cart', auth(), async (req, res, next) => {
   try {
     const cart = await Cart.findOne({ buyer: req.user.id }).populate('items.product');
-    res.json({ items: cart?.items || [] });
+    res.json({ items: cart?.items || [], platformDiscountRate: cart?.platformDiscountRate || 0 });
   } catch (error) {
     next(error);
   }
 });
 app.put('/api/cart', auth(), async (req, res, next) => {
   try {
-    const { items } = await Joi.object({
+    const { items, platformDiscountRate } = await Joi.object({
       items: Joi.array().items(Joi.object({
         productId: Joi.string().required(),
         quantity: Joi.number().integer().min(1).max(20).required(),
         prizeEntry: Joi.boolean().default(false),
       })).max(100).required(),
+      platformDiscountRate: Joi.number().integer().min(5).max(10).allow(0).default(0),
     }).validateAsync(req.body);
     const products = await Product.find({ _id: { $in: items.map((item) => item.productId) } }).select('_id promotion');
     if (products.length !== new Set(items.map((item) => item.productId)).size) return res.status(400).json({ message: 'One or more products are unavailable' });
@@ -44,10 +45,10 @@ app.put('/api/cart', auth(), async (req, res, next) => {
     }));
     const cart = await Cart.findOneAndUpdate(
       { buyer: req.user.id },
-      { buyer: req.user.id, items: savedItems },
+      { buyer: req.user.id, items: savedItems, platformDiscountRate: savedItems.some((item) => item.prizeEntry) ? platformDiscountRate : 0 },
       { new: true, upsert: true, setDefaultsOnInsert: true },
     ).populate('items.product');
-    res.json({ items: cart.items });
+    res.json({ items: cart.items, platformDiscountRate: cart.platformDiscountRate || 0 });
   } catch (error) {
     next(error);
   }
@@ -67,6 +68,7 @@ app.post('/api/orders', auth(), async (req, res, next) => {
         nodalPoint: Joi.string().min(2).required(),
       }).required(),
       paymentResult: Joi.string().valid('success', 'failure').default('success'),
+      platformDiscountRate: Joi.number().integer().min(5).max(10).optional(),
     }).validateAsync(req.body);
     if (v.paymentResult === 'failure') return res.status(402).json({ message: 'Dummy payment declined. Try again.' });
 
@@ -92,7 +94,7 @@ app.post('/api/orders', auth(), async (req, res, next) => {
       const product = map.get(String(item.product));
       return sum + (Number(product.promotion?.entryFee) || 399);
     }, 0);
-    const platformDiscountRate = items.some((item) => item.prizeEntry) ? Math.floor(Math.random() * 6) + 5 : 0;
+    const platformDiscountRate = items.some((item) => item.prizeEntry) ? (v.platformDiscountRate || Math.floor(Math.random() * 6) + 5) : 0;
     const platformDiscountAmount = Math.round(subtotal * platformDiscountRate / 100);
     const total = subtotal + prizeEntryTotal - platformDiscountAmount;
 
