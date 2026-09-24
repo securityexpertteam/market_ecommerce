@@ -631,9 +631,6 @@ const Shop = () => {
 
   return (
     <SafeAreaView style={styles.page}>
-      <View style={styles.announcementBar}>
-        <Text style={styles.announcementText}>FREE DELIVERY ON ORDERS ABOVE ₹999</Text>
-      </View>
       <Header cart={cart.length} go={setPage} userName={userName} role={role} wide={isWide} onMenu={() => setMenuOpen(true)} />
       {menuOpen && (
         <View style={styles.menuLayer}>
