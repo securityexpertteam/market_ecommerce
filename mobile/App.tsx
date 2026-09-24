@@ -2271,6 +2271,7 @@ const styles = StyleSheet.create({
   },
   promotionCopy: {
     flex: 1,
+    marginLeft: 14,
   },
   promotionPrizeImage: {
     width: 58,
