@@ -1161,6 +1161,7 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, p
             )}
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>Payment</Text>
+              <Text style={styles.freeDeliveryNote}>We are not big players charging extra for delivery - yours is free! 🚚</Text>
               <View style={styles.checkoutLine}><Text style={styles.muted}>Community</Text><Text style={styles.checkoutLineValue}>{community}</Text></View>
               <View style={styles.checkoutLine}><Text style={styles.muted}>Nodal point</Text><Text style={styles.checkoutLineValue}>{nodalPoint}</Text></View>
               <View style={styles.checkoutLine}><Text style={styles.muted}>Products</Text><Text style={styles.checkoutLineValue}>{formatPrice(total)}</Text></View>
@@ -2234,6 +2235,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 6,
   },
+  freeDeliveryNote: {
+    marginBottom: 12,
+    color: '#a34f32',
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '800',
+  },
   summaryTotal: {
     fontFamily: 'Georgia',
     fontSize: 32,
@@ -2448,6 +2456,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     width: '100%',
     height: '100%',
+    transform: [{ translateX: -58 }, { scale: 1.06 }],
   },
   authBackgroundOverlay: {
     flex: 1,
