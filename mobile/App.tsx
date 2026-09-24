@@ -636,7 +636,9 @@ const Shop = () => {
           <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)} />
           <View style={styles.menuPanel}>
             <View style={styles.menuPanelHeader}>
-              <Text style={styles.menuBrand}>BROWSE</Text>
+              <Pressable onPress={() => { setPage('home'); setMenuOpen(false); }}>
+                <Text style={styles.menuBrand}>BROWSE</Text>
+              </Pressable>
               <Pressable onPress={() => setMenuOpen(false)}><Text style={styles.menuClose}>Close</Text></Pressable>
             </View>
             <Text style={styles.menuEyebrow}>EXPLORE THE STORE</Text>
@@ -749,7 +751,9 @@ const Header = ({ cart, go, userName, role, wide, onMenu, seller }: any) => {
   return (
     <View style={styles.headerWrap}>
       <LinearGradient colors={['#263630', '#14221f']} style={[styles.header, wide && styles.wideHeader]}>
-        <Text style={styles.logo}>BROWSE</Text>
+        <Pressable onPress={() => { go('home'); setProfileOpen(false); }} style={styles.logoButton}>
+          <Text style={styles.logo}>BROWSE</Text>
+        </Pressable>
         <View style={styles.headerRight}>
           <Pressable onPress={onMenu || (() => go('home'))} style={styles.menuButton}>
             <Text style={styles.menuButtonLines}>|||</Text>
@@ -772,18 +776,15 @@ const Header = ({ cart, go, userName, role, wide, onMenu, seller }: any) => {
               <Text style={styles.profileTitle}>{userName}</Text>
               {role === 'buyer' && <Pressable style={styles.profileMenuItem} onPress={() => { go('orders'); setProfileOpen(false); }}>
                 <Text style={styles.profileMenuText}>Your orders</Text>
-                <Text style={styles.profileMenuArrow}>+</Text>
               </Pressable>}
               {role === 'seller' && (
                 <Pressable style={styles.profileMenuItem} onPress={() => { go('seller'); setProfileOpen(false); }}>
                   <Text style={styles.profileMenuText}>{seller ? 'Seller studio' : 'Seller studio'}</Text>
-                  <Text style={styles.profileMenuArrow}>+</Text>
                 </Pressable>
               )}
               <View style={styles.profileDivider} />
               <Pressable style={styles.profileMenuItem} onPress={() => { go('auth'); setProfileOpen(false); }}>
                 <Text style={styles.profileLogout}>Log out</Text>
-                <Text style={styles.profileMenuArrow}>+</Text>
               </Pressable>
             </View>
           )}
