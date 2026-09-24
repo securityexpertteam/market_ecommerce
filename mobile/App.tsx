@@ -1055,7 +1055,7 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, p
 
   return (
     <SafeAreaView style={styles.page}>
-      <View style={styles.contentWrap}>
+      <ScrollView style={styles.checkoutScroll} contentContainerStyle={styles.contentWrap} showsVerticalScrollIndicator>
         <View style={styles.checkoutHeader}>
           <Button compact onPress={back} textColor="#16745a">Back to bag</Button>
           <Text style={styles.checkoutStep}>Step {step} of 2</Text>
@@ -1190,7 +1190,7 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, p
             </Button>
           </>
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -1602,6 +1602,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingBottom: 28,
+  },
+  checkoutScroll: {
+    flex: 1,
   },
   wideContentWrap: {
     width: '100%',
@@ -2248,6 +2251,8 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     marginBottom: 18,
     color: '#123c2f',
+    textAlign: 'right',
+    alignSelf: 'stretch',
   },
   promotionCard: {
     flexDirection: 'row',
