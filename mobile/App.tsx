@@ -330,6 +330,16 @@ const Shop = () => {
     setTimeout(() => setCartNotice((current) => ({ ...current, visible: false })), 2200);
   };
 
+  const togglePromotion = (productId: string) => {
+    setPromotionOptIns((current) => {
+      const nextIncluded = current[productId] !== true;
+      if (nextIncluded) setPlatformDiscountRate((rate) => rate ?? randomPlatformDiscountRate());
+      return { ...current, [productId]: nextIncluded };
+    });
+  };
+                {item.promotion?.enabled && <View style={styles.cartPromotionStack}><AnimatedPrizeImage uri={item.promotion.prizeImageURL} /><Pressable style={styles.cartPromotionToggle} onPress={() => togglePromotion(item._id)}><View style={[styles.cartCheck, promotionOptIns[item._id] !== false && styles.cartCheckActive]}><Text style={styles.cartCheckText}>{promotionOptIns[item._id] !== false ? '✓' : ''}</Text></View><Text style={styles.cartPromotionText}>{promotionOptIns[item._id] !== false ? 'Prize added' : 'Add entry'}</Text></Pressable></View>}
+            {selected.promotion?.enabled && <Pressable style={styles.detailPromotionCard} onPress={() => togglePromotion(selected._id)}><AnimatedPrizeImage uri={selected.promotion.prizeImageURL} detail /><View style={styles.detailPromotionCopy}><Text style={styles.detailPromotionEyebrow}>PRIZE ENTRY</Text><Text style={styles.detailPromotionTitle}>Add {formatPrice(selected.promotion.entryFee)} for a chance to win an {selected.promotion.prize}</Text><Text style={styles.detailPromotionNote}>Optional promotional entry. Terms and winner selection apply.</Text></View><View style={styles.detailPromotionToggle}><View style={[styles.cartCheck, promotionOptIns[selected._id] !== false && styles.cartCheckActive]}><Text style={styles.cartCheckText}>{promotionOptIns[selected._id] !== false ? '✓' : ''}</Text></View><Text style={styles.detailPromotionToggleText}>{promotionOptIns[selected._id] !== false ? 'Added' : 'Add entry'}</Text></View></Pressable>}
+
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const cartPromotionFee = cart.reduce((sum, item) => item.promotion?.enabled && promotionOptIns[item._id] !== false ? sum + (Number(item.promotion.entryFee) || 399) : sum, 0);
   const hasPrizeItem = cart.some((item) => item.promotion?.enabled && promotionOptIns[item._id] !== false);
