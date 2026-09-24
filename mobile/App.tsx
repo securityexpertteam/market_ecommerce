@@ -586,9 +586,9 @@ const Shop = () => {
           {cart.length > 0 && (
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>Order total</Text>
-              {cartPlatformDiscount > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform discount ({platformDiscountRate}%)</Text><Text style={styles.checkoutLineValue}>- {formatPrice(cartPlatformDiscount)}</Text></View>}
               {cartPromotionFee > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Bonus entry</Text><Text style={styles.checkoutLineValue}>+ {formatPrice(cartPromotionFee)}</Text></View>}
               {cartPlatformFee > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform fee ({PLATFORM_FEE_RATE}%)</Text><Text style={styles.checkoutLineValue}>+ {formatPrice(cartPlatformFee)}</Text></View>}
+              {cartPlatformDiscount > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform discount ({platformDiscountRate}%)</Text><Text style={styles.checkoutLineValue}>- {formatPrice(cartPlatformDiscount)}</Text></View>}
               <Text style={styles.summaryTotal}>{formatPrice(cartGrandTotal)}</Text>
               <Button mode="contained" onPress={() => setPage('checkout')} buttonColor="#173f3a">
                 Continue to checkout
@@ -1163,9 +1163,9 @@ const Checkout = ({ total, promotion, promotionSelected, platformDiscountRate, p
               <View style={styles.checkoutLine}><Text style={styles.muted}>Community</Text><Text style={styles.checkoutLineValue}>{community}</Text></View>
               <View style={styles.checkoutLine}><Text style={styles.muted}>Nodal point</Text><Text style={styles.checkoutLineValue}>{nodalPoint}</Text></View>
               <View style={styles.checkoutLine}><Text style={styles.muted}>Products</Text><Text style={styles.checkoutLineValue}>{formatPrice(total)}</Text></View>
-              {platformDiscount > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform discount ({platformDiscountRate}%)</Text><Text style={styles.checkoutLineValue}>- {formatPrice(platformDiscount)}</Text></View>}
               {promotionFee > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Bonus entry</Text><Text style={styles.checkoutLineValue}>+ {formatPrice(promotionFee)}</Text></View>}
               {platformFeeAmount > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform fee ({PLATFORM_FEE_RATE}%)</Text><Text style={styles.checkoutLineValue}>+ {formatPrice(platformFeeAmount)}</Text></View>}
+              {platformDiscount > 0 && <View style={styles.checkoutLine}><Text style={styles.muted}>Platform discount ({platformDiscountRate}%)</Text><Text style={styles.checkoutLineValue}>- {formatPrice(platformDiscount)}</Text></View>}
               <View style={styles.checkoutDivider} />
               <Text style={styles.summaryTotal}>{formatPrice(finalTotal)}</Text>
               <Text style={styles.muted}>Dummy payment · secure checkout</Text>
