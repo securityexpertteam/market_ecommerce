@@ -297,6 +297,7 @@ const Shop = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [promotionOptIns, setPromotionOptIns] = useState<Record<string, boolean>>({});
   const [platformDiscountRate, setPlatformDiscountRate] = useState<number | null>(null);
+  const [cartHydrated, setCartHydrated] = useState(false);
 
   useEffect(() => {
     if (!API) return;
@@ -305,6 +306,49 @@ const Shop = () => {
       .then((data) => { if (Array.isArray(data) && data.length) setProducts(data); })
       .catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    if (!API || !apiToken) return;
+    let active = true;
+    Promise.all([
+      fetch(`${API}/cart`, { headers: { Authorization: `Bearer ${apiToken}` } }).then((response) => response.ok ? response.json() : { items: [] }),
+      fetch(`${API}/orders`, { headers: { Authorization: `Bearer ${apiToken}` } }).then((response) => response.ok ? response.json() : []),
+    ]).then(([savedCart, savedOrders]) => {
+      if (!active) return;
+      const restoredCart = (savedCart.items || []).map((entry: any) => entry.product ? { ...entry.product, quantity: entry.quantity } : null).filter(Boolean) as Cart[];
+      setCart(restoredCart);
+      if (restoredCart.some((item) => item.promotion?.enabled)) setPlatformDiscountRate((rate) => rate ?? randomPlatformDiscountRate());
+      setPromotionOptIns((current) => {
+        const restored = { ...current };
+        (savedCart.items || []).forEach((entry: any) => { if (entry.product?._id) restored[entry.product._id] = entry.prizeEntry !== false; });
+        return restored;
+      });
+      setOrders((savedOrders || []).map((order: any) => ({
+        id: String(order._id || order.id),
+        status: order.status,
+        total: order.total,
+        createdAt: order.createdAt,
+        items: (order.items || []).map((item: any) => ({
+          productId: String(item.product?._id || item.product),
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          imageURL: item.imageURL,
+        })),
+      })));
+      setCartHydrated(true);
+    }).catch(() => { if (active) setCartHydrated(true); });
+    return () => { active = false; };
+  }, [apiToken]);
+
+  useEffect(() => {
+    if (!API || !apiToken || !cartHydrated) return;
+    fetch(`${API}/cart`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiToken}` },
+      body: JSON.stringify({ items: cart.map((item) => ({ productId: item._id, quantity: item.quantity, prizeEntry: item.promotion?.enabled && promotionOptIns[item._id] !== false })) }),
+    }).catch(() => undefined);
+  }, [apiToken, cart, cartHydrated, promotionOptIns]);
 
   const add = (p: Product) => {
     setCart((current) => {
@@ -338,6 +382,14 @@ const Shop = () => {
     });
   };
 
+  const changeQuantity = (productId: string, delta: number) => {
+    setCart((current) => current.flatMap((item) => {
+      if (item._id !== productId) return [item];
+      const quantity = item.quantity + delta;
+      return quantity > 0 ? [{ ...item, quantity }] : [];
+    }));
+  };
+
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const cartPromotionFee = cart.reduce((sum, item) => item.promotion?.enabled && promotionOptIns[item._id] !== false ? sum + (Number(item.promotion.entryFee) || 399) : sum, 0);
   const hasPrizeItem = cart.some((item) => item.promotion?.enabled && promotionOptIns[item._id] !== false);
@@ -350,9 +402,17 @@ const Shop = () => {
   const visibleProducts =
     activeCategory === 'All' ? products : products.filter((item) => item.category === activeCategory);
 
-  const cancelOrder = (orderId: string) => {
+  const cancelOrder = async (orderId: string) => {
     const targetOrder = orders.find((order) => order.id === orderId);
     if (!targetOrder) return;
+
+    if (API && apiToken) {
+      const response = await fetch(`${API}/orders/${orderId}/cancel`, { method: 'PATCH', headers: { Authorization: `Bearer ${apiToken}` } });
+      if (!response.ok) {
+        Alert.alert('Unable to cancel order', 'Please try again.');
+        return;
+      }
+    }
 
     setOrders((current) =>
       current.map((order) => (order.id === orderId ? { ...order, status: 'cancelled' } : order)),
@@ -500,6 +560,15 @@ const Shop = () => {
                 <View style={styles.cartItemMeta}>
                   <Text style={styles.itemTitle}>{item.name}</Text>
                   <Text style={styles.itemMeta}>{formatPrice(item.price)} × {item.quantity}</Text>
+                  <View style={styles.quantityControl}>
+                    <Pressable accessibilityLabel={`Decrease ${item.name} quantity`} style={styles.quantityButton} onPress={() => changeQuantity(item._id, -1)}>
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </Pressable>
+                    <Text style={styles.quantityValue}>{item.quantity}</Text>
+                    <Pressable accessibilityLabel={`Increase ${item.name} quantity`} style={styles.quantityButton} onPress={() => changeQuantity(item._id, 1)}>
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </Pressable>
+                  </View>
                   <Pressable onPress={() => setCart((current) => current.filter((entry) => entry._id !== item._id))}>
                     <Text style={styles.inlineAction}>Remove</Text>
                   </Pressable>
@@ -657,12 +726,12 @@ const Shop = () => {
         ListFooterComponent={
           <View style={[styles.promoStrip, isWide && styles.widePromoStrip]}>
             <View style={styles.promoCopy}>
-              <Text style={styles.promoEyebrow}>A LITTLE EXTRA</Text>
-              <Text style={styles.promoTitle}>Make room for something good.</Text>
-              <Text style={styles.promoDescription}>Fresh snacks and useful upgrades, selected for easy everyday living.</Text>
+              <Text style={styles.promoEyebrow}>FLASH PRIZES ARE LIVE</Text>
+              <Text style={styles.promoTitle}>Add a little thrill to your bag.</Text>
+              <Text style={styles.promoDescription}>Choose a prize entry on eligible drops for a surprise 5%-10% platform discount. Bright finds, bonus chances, and a better checkout.</Text>
             </View>
-            <Button mode="outlined" onPress={() => setActiveCategory('Snacks')} textColor="#16745a">
-              Browse snacks
+            <Button mode="outlined" onPress={() => setActiveCategory('Diwali Crackers')} textColor="#16745a">
+              See flash prizes
             </Button>
           </View>
         }
@@ -2061,6 +2130,36 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     justifyContent: 'center',
+  },
+  quantityControl: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#c9d8cd',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+  },
+  quantityButton: {
+    width: 30,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#eef5ef',
+  },
+  quantityButtonText: {
+    color: '#173f3a',
+    fontSize: 18,
+    lineHeight: 20,
+    fontWeight: '800',
+  },
+  quantityValue: {
+    minWidth: 30,
+    textAlign: 'center',
+    color: '#173f3a',
+    fontSize: 13,
+    fontWeight: '800',
   },
   cartPromotionToggle: {
     flexDirection: 'row',

@@ -1,5 +1,5 @@
 const express = require('express'); const helmet = require('helmet'); const cors = require('cors'); const rateLimit = require('express-rate-limit'); const bcrypt = require('bcryptjs'); const jwt = require('jsonwebtoken'); const Joi = require('joi');
-const Product = require('./models/Product'); const User = require('./models/User'); const Order = require('./models/Order'); const auth = require('./middleware/auth'); const { sendOrderEmail } = require('./services/email');
+const Product = require('./models/Product'); const User = require('./models/User'); const Order = require('./models/Order'); const Cart = require('./models/Cart'); const auth = require('./middleware/auth'); const { sendOrderEmail } = require('./services/email');
 const app = express(); app.set('trust proxy', 1); app.use(helmet({ contentSecurityPolicy: false })); app.use(cors({ origin: process.env.NODE_ENV === 'production' ? (process.env.CLIENT_ORIGIN?.split(',') || false) : true })); app.use(express.json({ limit: '5mb' })); app.use(rateLimit({ windowMs: 900000, limit: 300, standardHeaders: 'draft-7', legacyHeaders: false }));
 const sign = u => jwt.sign({ id: u._id, role: u.role, name: u.name }, process.env.JWT_SECRET, { expiresIn: '7d' });
 const emailRule = Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required();
@@ -17,6 +17,41 @@ const productImageRule = Joi.alternatives().try(
 );
 const productSchema = Joi.object({ name: Joi.string().min(2).max(140).required(), description: Joi.string().max(2000).required(), category: Joi.string().required(), price: Joi.number().min(0).required(), stock: Joi.number().integer().min(0).required(), imageURL: productImageRule.required(), images: Joi.array().items(productImageRule).max(6).default([]), promotion: Joi.object({ enabled: Joi.boolean().required(), entryFee: Joi.number().min(0).required(), prize: Joi.string().min(2).max(120).required(), prizeImageURL: productImageRule.optional() }).optional() });
 app.get('/health', (_, res) => res.json({ ok: true }));
+app.get('/api/cart', auth(), async (req, res, next) => {
+  try {
+    const cart = await Cart.findOne({ buyer: req.user.id }).populate('items.product');
+    res.json({ items: cart?.items || [] });
+  } catch (error) {
+    next(error);
+  }
+});
+app.put('/api/cart', auth(), async (req, res, next) => {
+  try {
+    const { items } = await Joi.object({
+      items: Joi.array().items(Joi.object({
+        productId: Joi.string().required(),
+        quantity: Joi.number().integer().min(1).max(20).required(),
+        prizeEntry: Joi.boolean().default(false),
+      })).max(100).required(),
+    }).validateAsync(req.body);
+    const products = await Product.find({ _id: { $in: items.map((item) => item.productId) } }).select('_id promotion');
+    if (products.length !== new Set(items.map((item) => item.productId)).size) return res.status(400).json({ message: 'One or more products are unavailable' });
+    const productIds = new Set(products.map((product) => String(product._id)));
+    const savedItems = items.filter((item) => productIds.has(item.productId)).map((item) => ({
+      product: item.productId,
+      quantity: item.quantity,
+      prizeEntry: item.prizeEntry && Boolean(products.find((product) => String(product._id) === item.productId)?.promotion?.enabled),
+    }));
+    const cart = await Cart.findOneAndUpdate(
+      { buyer: req.user.id },
+      { buyer: req.user.id, items: savedItems },
+      { new: true, upsert: true, setDefaultsOnInsert: true },
+    ).populate('items.product');
+    res.json({ items: cart.items });
+  } catch (error) {
+    next(error);
+  }
+});
 app.post('/api/orders', auth(), async (req, res, next) => {
   try {
     const v = await Joi.object({
