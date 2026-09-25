@@ -20,7 +20,8 @@ type Cart = Product & { quantity: number };
 
 // Expo replaces EXPO_PUBLIC_ variables in the web bundle during export.
 // @ts-expect-error Expo's generated env type does not include project variables.
-const API = process.env.EXPO_PUBLIC_API_URL || 'https://market-ecommerce.onrender.com/api';
+const configuredAPI = process.env.EXPO_PUBLIC_API_URL || 'https://market-ecommerce-ly4o.onrender.com/api';
+const API = configuredAPI.replace(/\/+$/, '').endsWith('/api') ? configuredAPI.replace(/\/+$/, '') : `${configuredAPI.replace(/\/+$/, '')}/api`;
 
 const featured: Product[] = [
   {

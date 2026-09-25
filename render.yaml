@@ -16,7 +16,7 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: CLIENT_ORIGIN
-        value: https://market-ecommerce-1.onrender.com
+        value: https://market-ecommerce-1-hyqm.onrender.com
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT
@@ -39,4 +39,4 @@ services:
     staticPublishPath: mobile/dist
     envVars:
       - key: EXPO_PUBLIC_API_URL
-        value: https://market-ecommerce.onrender.com/api
+        value: https://market-ecommerce-ly4o.onrender.com/api

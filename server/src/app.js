@@ -1,6 +1,9 @@
 const express = require('express'); const helmet = require('helmet'); const cors = require('cors'); const rateLimit = require('express-rate-limit'); const bcrypt = require('bcryptjs'); const jwt = require('jsonwebtoken'); const Joi = require('joi');
 const Product = require('./models/Product'); const User = require('./models/User'); const Order = require('./models/Order'); const Cart = require('./models/Cart'); const auth = require('./middleware/auth'); const { sendOrderEmail } = require('./services/email');
-const app = express(); app.set('trust proxy', 1); app.use(helmet({ contentSecurityPolicy: false })); app.use(cors({ origin: process.env.NODE_ENV === 'production' ? (process.env.CLIENT_ORIGIN?.split(',') || false) : true })); app.use(express.json({ limit: '5mb' })); app.use(rateLimit({ windowMs: 900000, limit: 300, standardHeaders: 'draft-7', legacyHeaders: false }));
+const app = express(); app.set('trust proxy', 1); app.use(helmet({ contentSecurityPolicy: false }));
+const allowedOrigins = new Set((process.env.CLIENT_ORIGIN || '').split(',').map((origin) => origin.trim().replace(/\/+$/, '')).filter(Boolean));
+app.use(cors({ origin: process.env.NODE_ENV === 'production' ? (origin, callback) => callback(null, !origin || allowedOrigins.has(origin.replace(/\/+$/, ''))) : true }));
+app.use(express.json({ limit: '5mb' })); app.use(rateLimit({ windowMs: 900000, limit: 300, standardHeaders: 'draft-7', legacyHeaders: false }));
 const sign = u => jwt.sign({ id: u._id, role: u.role, name: u.name }, process.env.JWT_SECRET, { expiresIn: '7d' });
 const emailRule = Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required();
 const phoneRule = Joi.string().pattern(/^\+[1-9]\d{7,17}$/).message('Contact must include a valid country code and 6 to 14 phone digits').required();
